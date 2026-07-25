@@ -20,6 +20,26 @@ export interface Salon {
   interval_minutes: number;
 }
 
+export interface SalonUnit {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  is_main: boolean;
+}
+
+export interface InventoryItem {
+  id: string;
+  name: string;
+  category: string;
+  quantity: number;
+  min_quantity: number;
+  unit: string; // e.g. "unidades", "frascos", "tubos"
+  cost_price: number;
+  supplier: string;
+  status: 'ok' | 'low' | 'critical';
+}
+
 export interface Category {
   id: string;
   salon_id: string;
@@ -130,32 +150,6 @@ export interface Appointment {
   created_at: string;
 }
 
-export interface BlockedTime {
-  id: string;
-  professional_id: string;
-  date: string; // YYYY-MM-DD
-  start_time: string;
-  end_time: string;
-  reason: string;
-}
-
-export interface BlockedDate {
-  id: string;
-  salon_id: string;
-  date: string;
-  reason: string;
-}
-
-export interface Payment {
-  id: string;
-  appointment_id: string;
-  amount: number;
-  payment_method: 'pix' | 'credit_card' | 'debit_card' | 'cash';
-  status: 'completed' | 'pending' | 'failed';
-  receipt_url?: string;
-  created_at: string;
-}
-
 export interface Coupon {
   id: string;
   salon_id: string;
@@ -167,16 +161,6 @@ export interface Coupon {
   used_count: number;
   expires_at?: string;
   is_active: boolean;
-}
-
-export interface LoyaltyCard {
-  id: string;
-  client_id: string;
-  salon_id: string;
-  total_stamps: number;
-  stamps_needed: number; // Default 10
-  reward_description: string; // e.g. "1 Hidratação Grátis"
-  reward_unlocked: boolean;
 }
 
 export interface Review {
@@ -201,23 +185,6 @@ export interface WaitlistItem {
   notes?: string;
   status: 'waiting' | 'notified' | 'scheduled';
   created_at: string;
-}
-
-export interface GalleryItem {
-  id: string;
-  title: string;
-  category: string;
-  image_url: string;
-  description?: string;
-}
-
-export interface Testimonial {
-  id: string;
-  client_name: string;
-  client_role?: string;
-  client_avatar: string;
-  content: string;
-  rating: number;
 }
 
 export interface AIInsight {

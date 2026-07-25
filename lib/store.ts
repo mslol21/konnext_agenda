@@ -8,7 +8,9 @@ import {
   Review, 
   WaitlistItem,
   Category,
-  AIInsight
+  AIInsight,
+  SalonUnit,
+  InventoryItem
 } from '@/types';
 import { 
   initialSalon, 
@@ -19,13 +21,16 @@ import {
   initialAppointments, 
   initialCoupons, 
   initialReviews, 
-  initialGallery, 
   initialWaitlist,
-  initialAIInsights
+  initialAIInsights,
+  initialSalonUnits,
+  initialInventory
 } from './mock-data';
 
 const STORAGE_KEYS = {
   SALON: 'konnexy_salon',
+  UNITS: 'konnexy_units',
+  INVENTORY: 'konnexy_inventory',
   SERVICES: 'konnexy_services',
   PROFESSIONALS: 'konnexy_professionals',
   CLIENTS: 'konnexy_clients',
@@ -37,7 +42,6 @@ const STORAGE_KEYS = {
   AI_INSIGHTS: 'konnexy_ai_insights',
 };
 
-// LocalStorage Helper
 function getStored<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback;
   try {
@@ -59,12 +63,35 @@ function setStored<T>(key: string, value: T): void {
 }
 
 export const DataStore = {
-  // Salon
+  // Salon & White Label Brand
   getSalon(): Salon {
     return getStored(STORAGE_KEYS.SALON, initialSalon);
   },
   updateSalon(salon: Salon): void {
     setStored(STORAGE_KEYS.SALON, salon);
+  },
+
+  // Units
+  getUnits(): SalonUnit[] {
+    return getStored(STORAGE_KEYS.UNITS, initialSalonUnits);
+  },
+
+  // Inventory
+  getInventory(): InventoryItem[] {
+    return getStored(STORAGE_KEYS.INVENTORY, initialInventory);
+  },
+  saveInventoryItem(item: InventoryItem): InventoryItem[] {
+    const items = this.getInventory();
+    const index = items.findIndex(i => i.id === item.id);
+    let updated: InventoryItem[];
+    if (index >= 0) {
+      updated = [...items];
+      updated[index] = item;
+    } else {
+      updated = [item, ...items];
+    }
+    setStored(STORAGE_KEYS.INVENTORY, updated);
+    return updated;
   },
 
   // Categories
@@ -113,7 +140,7 @@ export const DataStore = {
     return updated;
   },
 
-  // Clients & VIP Tier Calculation
+  // Clients
   getClients(): Client[] {
     return getStored(STORAGE_KEYS.CLIENTS, initialClients);
   },
@@ -131,7 +158,7 @@ export const DataStore = {
     return updated;
   },
 
-  // Appointments & Buffer Time Slot Conflict Checking
+  // Appointments
   getAppointments(): Appointment[] {
     return getStored(STORAGE_KEYS.APPOINTMENTS, initialAppointments);
   },
@@ -146,8 +173,6 @@ export const DataStore = {
       if (apt.professional_id !== professionalId) return false;
       if (apt.date !== date) return false;
       if (apt.status === 'cancelled') return false;
-
-      // Check time overlap: (start1 < end2) && (end1 > start2)
       return (startTime < apt.end_time) && (endTime > apt.start_time);
     });
 
@@ -155,7 +180,6 @@ export const DataStore = {
   },
 
   createAppointment(aptData: Omit<Appointment, 'id' | 'created_at'>): { success: boolean; appointment?: Appointment; message?: string } {
-    // 1. Check double booking
     const isFree = this.checkSlotAvailable(
       aptData.professional_id, 
       aptData.date, 
@@ -180,7 +204,7 @@ export const DataStore = {
     const appointments = [newAppointment, ...this.getAppointments()];
     setStored(STORAGE_KEYS.APPOINTMENTS, appointments);
 
-    // Update or create client record and recalculate VIP tier
+    // Update client record
     const clients = this.getClients();
     const existingClient = clients.find(c => c.email === aptData.client_email || c.phone === aptData.client_phone);
     if (existingClient) {
@@ -188,7 +212,6 @@ export const DataStore = {
       existingClient.visits_count += 1;
       existingClient.last_visit = aptData.date;
       
-      // Auto VIP Tier
       if (existingClient.visits_count >= 10 || existingClient.total_spent >= 1500) {
         existingClient.tier = 'vip_diamante';
       } else if (existingClient.visits_count >= 5 || existingClient.total_spent >= 500) {
@@ -249,6 +272,19 @@ export const DataStore = {
   // Coupons
   getCoupons(): Coupon[] {
     return getStored(STORAGE_KEYS.COUPONS, initialCoupons);
+  },
+  saveCoupon(coupon: Coupon): Coupon[] {
+    const coupons = this.getCoupons();
+    const index = coupons.findIndex(c => c.id === coupon.id);
+    let updated: Coupon[];
+    if (index >= 0) {
+      updated = [...coupons];
+      updated[index] = coupon;
+    } else {
+      updated = [coupon, ...coupons];
+    }
+    setStored(STORAGE_KEYS.COUPONS, updated);
+    return updated;
   },
   validateCoupon(code: string, amount: number): { valid: boolean; coupon?: Coupon; discount: number; message?: string } {
     const coupons = this.getCoupons();

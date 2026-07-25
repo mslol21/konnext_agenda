@@ -7,10 +7,10 @@ import {
   Appointment, 
   Coupon, 
   Review, 
-  GalleryItem, 
-  Testimonial,
   WaitlistItem,
-  AIInsight
+  AIInsight,
+  SalonUnit,
+  InventoryItem
 } from '@/types';
 
 export const initialSalon: Salon = {
@@ -32,6 +32,20 @@ export const initialSalon: Salon = {
   },
   interval_minutes: 30,
 };
+
+export const initialSalonUnits: SalonUnit[] = [
+  { id: 'unit-1', name: 'Unidade Jardins (Matriz)', address: 'Alameda Gabriel Monteiro da Silva, 1420', phone: '(11) 98765-4321', is_main: true },
+  { id: 'unit-2', name: 'Unidade Alphaville', address: 'Alameda Rio Negro, 500 - Barueri', phone: '(11) 97766-5544', is_main: false },
+  { id: 'unit-3', name: 'Unidade Moema', address: 'Av. Moema, 340 - São Paulo', phone: '(11) 96655-4433', is_main: false },
+];
+
+export const initialInventory: InventoryItem[] = [
+  { id: 'inv-1', name: 'Tintura Wella Illumina 8.69', category: 'Coloração', quantity: 3, min_quantity: 5, unit: 'tubos', cost_price: 45.00, supplier: 'Wella Professionals', status: 'low' },
+  { id: 'inv-2', name: 'Shampoo Kérastase Nutritive 1L', category: 'Lavatório', quantity: 8, min_quantity: 4, unit: 'frascos', cost_price: 180.00, supplier: 'L\'Oréal Division', status: 'ok' },
+  { id: 'inv-3', name: 'Proteção Olaplex N°1 & N°2', category: 'Tratamento', quantity: 2, min_quantity: 3, unit: 'kits', cost_price: 320.00, supplier: 'Olaplex Brasil', status: 'critical' },
+  { id: 'inv-4', name: 'Esmalte Gel Impala Red Lux', category: 'Manicure', quantity: 15, min_quantity: 6, unit: 'frascos', cost_price: 18.00, supplier: 'Impala Cosméticos', status: 'ok' },
+  { id: 'inv-5', name: 'Cera Hidratante Parafina Quente', category: 'Spa Mãos', quantity: 12, min_quantity: 5, unit: 'potes', cost_price: 28.00, supplier: 'Beauty Care', status: 'ok' },
+];
 
 export const initialCategories: Category[] = [
   { id: 'cat-1', salon_id: 'salon-1', name: 'Cabelos & Penteados', slug: 'cabelos', order: 1 },
@@ -442,50 +456,6 @@ export const initialReviews: Review[] = [
     comment: 'Unhas perfeitas! A cutilagem russa dura semanas. Recomendo de olhos fechados.',
     is_featured: true,
     created_at: '2026-07-23',
-  }
-];
-
-export const initialGallery: GalleryItem[] = [
-  {
-    id: 'gal-1',
-    title: 'Transformação Blonde Illumination',
-    category: 'Coloração',
-    image_url: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&auto=format&fit=crop&q=80',
-    description: 'Mechas delicadas com tom perolado sofisticado.',
-  },
-  {
-    id: 'gal-2',
-    title: 'Corte Long Bob Visagista',
-    category: 'Corte',
-    image_url: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&auto=format&fit=crop&q=80',
-    description: 'Leveza e movimento para fios médios.',
-  },
-  {
-    id: 'gal-3',
-    title: 'Design & Brow Lamination',
-    category: 'Sobrancelhas',
-    image_url: 'https://images.unsplash.com/photo-1583001809873-a1284d5630be?w=800&auto=format&fit=crop&q=80',
-    description: 'Alinhamento dos fios com naturalidade.',
-  },
-  {
-    id: 'gal-4',
-    title: 'Nail Art Minimalista em Gel',
-    category: 'Unhas',
-    image_url: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800&auto=format&fit=crop&q=80',
-    description: 'Esmaltação de alta resistência e acabamento reluzente.',
-  }
-];
-
-export const initialWaitlist: WaitlistItem[] = [
-  {
-    id: 'wait-1',
-    client_name: 'Vanessa Camargo',
-    client_phone: '(11) 96543-2109',
-    service_name: 'Luzes & Mechas Platinum',
-    preferred_date: getTodayStr(2),
-    notes: 'Prefere horário da tarde a partir das 14h',
-    status: 'waiting',
-    created_at: getTodayStr(-1),
   }
 ];
 
