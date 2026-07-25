@@ -459,6 +459,50 @@ export const initialReviews: Review[] = [
   }
 ];
 
+export const initialGallery: GalleryItem[] = [
+  {
+    id: 'gal-1',
+    title: 'Transformação Blonde Illumination',
+    category: 'Coloração',
+    image_url: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&auto=format&fit=crop&q=80',
+    description: 'Mechas delicadas com tom perolado sofisticado.',
+  },
+  {
+    id: 'gal-2',
+    title: 'Corte Long Bob Visagista',
+    category: 'Corte',
+    image_url: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&auto=format&fit=crop&q=80',
+    description: 'Leveza e movimento para fios médios.',
+  },
+  {
+    id: 'gal-3',
+    title: 'Design & Brow Lamination',
+    category: 'Sobrancelhas',
+    image_url: 'https://images.unsplash.com/photo-1583001809873-a1284d5630be?w=800&auto=format&fit=crop&q=80',
+    description: 'Alinhamento dos fios com naturalidade.',
+  },
+  {
+    id: 'gal-4',
+    title: 'Nail Art Minimalista em Gel',
+    category: 'Unhas',
+    image_url: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800&auto=format&fit=crop&q=80',
+    description: 'Esmaltação de alta resistência e acabamento reluzente.',
+  }
+];
+
+export const initialWaitlist: WaitlistItem[] = [
+  {
+    id: 'wait-1',
+    client_name: 'Vanessa Camargo',
+    client_phone: '(11) 96543-2109',
+    service_name: 'Luzes & Mechas Platinum',
+    preferred_date: getTodayStr(2),
+    notes: 'Prefere horário da tarde a partir das 14h',
+    status: 'waiting',
+    created_at: getTodayStr(-1),
+  }
+];
+
 export const initialAIInsights: AIInsight[] = [
   {
     id: 'ai-1',
