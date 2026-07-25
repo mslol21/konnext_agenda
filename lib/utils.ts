@@ -22,7 +22,39 @@ export function formatDate(dateString: string): string {
   return `${day}/${month}/${year}`;
 }
 
-// ICS Calendar Event Exporter
+// Generate Direct Google Calendar Web URL
+export function getGoogleCalendarUrl(appointment: Appointment): string {
+  const [year, month, day] = appointment.date.split('-');
+  const [startHour, startMin] = appointment.start_time.split(':');
+  const [endHour, endMin] = appointment.end_time.split(':');
+
+  const dtStart = `${year}${month}${day}T${startHour}${startMin}00`;
+  const dtEnd = `${year}${month}${day}T${endHour}${endMin}00`;
+
+  const title = encodeURIComponent(`${appointment.service_name} - Konnexy Agenda`);
+  const details = encodeURIComponent(`Agendamento de ${appointment.service_name} no Konnexy Agenda.\nProfissional: ${appointment.professional_name}\nValor: ${formatCurrency(appointment.final_price)}`);
+  const location = encodeURIComponent('Alameda Gabriel Monteiro da Silva, 1420 - Jardins, São Paulo - SP');
+
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dtStart}/${dtEnd}&details=${details}&location=${location}`;
+}
+
+// Generate Outlook Web Calendar URL
+export function getOutlookCalendarUrl(appointment: Appointment): string {
+  const [year, month, day] = appointment.date.split('-');
+  const [startHour, startMin] = appointment.start_time.split(':');
+  const [endHour, endMin] = appointment.end_time.split(':');
+
+  const dtStart = `${year}-${month}-${day}T${startHour}:${startMin}:00`;
+  const dtEnd = `${year}-${month}-${day}T${endHour}:${endMin}:00`;
+
+  const title = encodeURIComponent(`${appointment.service_name} - Konnexy Agenda`);
+  const details = encodeURIComponent(`Profissional: ${appointment.professional_name} | Valor: ${formatCurrency(appointment.final_price)}`);
+  const location = encodeURIComponent('Alameda Gabriel Monteiro da Silva, 1420 - Jardins, São Paulo - SP');
+
+  return `https://outlook.live.com/calendar/0/deeplink/compose?subject=${title}&startdt=${dtStart}&enddt=${dtEnd}&body=${details}&location=${location}`;
+}
+
+// ICS Calendar Event Exporter (Apple / Universal)
 export function downloadICS(appointment: Appointment) {
   const [year, month, day] = appointment.date.split('-');
   const [startHour, startMin] = appointment.start_time.split(':');

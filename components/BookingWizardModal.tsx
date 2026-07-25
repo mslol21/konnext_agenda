@@ -458,25 +458,46 @@ export function BookingWizardModal() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                  {availableTimeSlots.map(time => {
-                    const isSelected = selectedTime === time;
-                    return (
-                      <button
-                        key={time}
-                        onClick={() => setSelectedTime(time)}
-                        className={cn(
-                          "py-3 px-2 rounded-2xl border text-sm font-bold transition-all flex flex-col items-center justify-center gap-1",
-                          isSelected
-                            ? "border-[#C08497] bg-gradient-to-br from-[#C08497] to-[#8B5E83] text-white shadow-md scale-105"
-                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-rose-300 hover:bg-rose-50/50"
-                        )}
-                      >
-                        <Clock className="w-3.5 h-3.5" />
-                        {time}
-                      </button>
-                    );
-                  })}
+                <div className="space-y-3">
+                  {/* Smart Recommendation Highlight */}
+                  <div className="p-3 rounded-2xl bg-gradient-to-r from-[#C08497]/15 to-[#8B5E83]/15 border border-[#C08497]/30 flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#8B5E83] dark:text-rose-300 flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-[#C08497]" /> Sugestão Inteligente de Melhor Horário:
+                    </span>
+                    <button
+                      onClick={() => setSelectedTime(availableTimeSlots[0])}
+                      className="px-3 py-1 rounded-xl bg-[#C08497] text-white text-xs font-bold shadow-sm hover:bg-[#b37588]"
+                    >
+                      {availableTimeSlots[0]} (Recomendado)
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                    {availableTimeSlots.map((time, idx) => {
+                      const isSelected = selectedTime === time;
+                      const isRecommended = idx === 0;
+                      return (
+                        <button
+                          key={time}
+                          onClick={() => setSelectedTime(time)}
+                          className={cn(
+                            "py-3 px-2 rounded-2xl border text-sm font-bold transition-all flex flex-col items-center justify-center gap-1 relative",
+                            isSelected
+                              ? "border-[#C08497] bg-gradient-to-br from-[#C08497] to-[#8B5E83] text-white shadow-md scale-105"
+                              : isRecommended
+                              ? "border-[#C08497] bg-rose-50/80 dark:bg-slate-800 text-slate-800 dark:text-white"
+                              : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-rose-300 hover:bg-rose-50/50"
+                          )}
+                        >
+                          <Clock className="w-3.5 h-3.5" />
+                          {time}
+                          {isRecommended && !isSelected && (
+                            <span className="text-[9px] text-[#8B5E83] dark:text-rose-300 font-extrabold">Recomendado</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -619,19 +640,35 @@ export function BookingWizardModal() {
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex flex-wrap justify-center gap-3">
-                <button
-                  onClick={() => downloadICS(createdAppointment)}
-                  className="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-semibold flex items-center gap-2 hover:bg-slate-800 shadow-sm"
-                >
-                  <Download className="w-4 h-4" />
-                  Salvar no Calendário (.ICS)
-                </button>
+              {/* Sync Calendar Actions */}
+              <div className="space-y-2">
+                <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Adicionar ao seu Calendário:
+                </p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <a
+                    href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(createdAppointment.service_name + ' - Konnexy Agenda')}&dates=${createdAppointment.date.replace(/-/g, '')}T${createdAppointment.start_time.replace(':', '')}00/${createdAppointment.date.replace(/-/g, '')}T${createdAppointment.end_time.replace(':', '')}00&details=${encodeURIComponent('Profissional: ' + createdAppointment.professional_name)}&location=${encodeURIComponent('Alameda Gabriel Monteiro da Silva, 1420 - Jardins')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold flex items-center gap-1.5 hover:bg-blue-700 shadow-sm"
+                  >
+                    Google Calendar
+                  </a>
 
+                  <button
+                    onClick={() => downloadICS(createdAppointment)}
+                    className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold flex items-center gap-1.5 hover:bg-slate-800 shadow-sm"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Apple / Outros (.ICS)
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-2">
                 <button
                   onClick={() => setBookingModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl bg-[#C08497] text-white text-xs font-semibold hover:bg-[#b37588]"
+                  className="px-6 py-2.5 rounded-xl bg-[#C08497] text-white text-xs font-bold hover:bg-[#b37588]"
                 >
                   Concluir e Fechar
                 </button>

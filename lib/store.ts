@@ -7,7 +7,8 @@ import {
   Coupon, 
   Review, 
   WaitlistItem,
-  Category
+  Category,
+  AIInsight
 } from '@/types';
 import { 
   initialSalon, 
@@ -19,7 +20,8 @@ import {
   initialCoupons, 
   initialReviews, 
   initialGallery, 
-  initialWaitlist 
+  initialWaitlist,
+  initialAIInsights
 } from './mock-data';
 
 const STORAGE_KEYS = {
@@ -32,6 +34,7 @@ const STORAGE_KEYS = {
   REVIEWS: 'konnexy_reviews',
   WAITLIST: 'konnexy_waitlist',
   ROLE: 'konnexy_user_role',
+  AI_INSIGHTS: 'konnexy_ai_insights',
 };
 
 // LocalStorage Helper
@@ -110,7 +113,7 @@ export const DataStore = {
     return updated;
   },
 
-  // Clients
+  // Clients & VIP Tier Calculation
   getClients(): Client[] {
     return getStored(STORAGE_KEYS.CLIENTS, initialClients);
   },
@@ -128,12 +131,15 @@ export const DataStore = {
     return updated;
   },
 
-  // Appointments & Slot Conflict Checking
+  // Appointments & Buffer Time Slot Conflict Checking
   getAppointments(): Appointment[] {
     return getStored(STORAGE_KEYS.APPOINTMENTS, initialAppointments);
   },
   
   checkSlotAvailable(professionalId: string, date: string, startTime: string, endTime: string, excludeId?: string): boolean {
+    const pro = this.getProfessionals().find(p => p.id === professionalId);
+    if (pro && pro.status === 'vacation') return false;
+
     const appointments = this.getAppointments();
     const conflicting = appointments.find(apt => {
       if (apt.id === excludeId) return false;
@@ -167,19 +173,28 @@ export const DataStore = {
     const newAppointment: Appointment = {
       ...aptData,
       id: `apt-${Date.now()}`,
+      confirmation_stage: 'pending',
       created_at: new Date().toISOString(),
     };
 
     const appointments = [newAppointment, ...this.getAppointments()];
     setStored(STORAGE_KEYS.APPOINTMENTS, appointments);
 
-    // Update or create client record
+    // Update or create client record and recalculate VIP tier
     const clients = this.getClients();
     const existingClient = clients.find(c => c.email === aptData.client_email || c.phone === aptData.client_phone);
     if (existingClient) {
       existingClient.total_spent += aptData.final_price;
       existingClient.visits_count += 1;
       existingClient.last_visit = aptData.date;
+      
+      // Auto VIP Tier
+      if (existingClient.visits_count >= 10 || existingClient.total_spent >= 1500) {
+        existingClient.tier = 'vip_diamante';
+      } else if (existingClient.visits_count >= 5 || existingClient.total_spent >= 500) {
+        existingClient.tier = 'vip_ouro';
+      }
+
       this.saveClient(existingClient);
     } else {
       const newClient: Client = {
@@ -190,6 +205,7 @@ export const DataStore = {
         email: aptData.client_email,
         total_spent: aptData.final_price,
         visits_count: 1,
+        tier: 'padrao',
         last_visit: aptData.date,
         created_at: new Date().toISOString(),
       };
@@ -206,6 +222,22 @@ export const DataStore = {
           ...apt,
           status,
           payment_status: paymentStatus || apt.payment_status,
+        };
+      }
+      return apt;
+    });
+    setStored(STORAGE_KEYS.APPOINTMENTS, appointments);
+    return appointments;
+  },
+
+  updateAppointmentPhotos(id: string, beforeUrl?: string, afterUrl?: string, authorized?: boolean): Appointment[] {
+    const appointments = this.getAppointments().map(apt => {
+      if (apt.id === id) {
+        return {
+          ...apt,
+          before_image_url: beforeUrl || apt.before_image_url,
+          after_image_url: afterUrl || apt.after_image_url,
+          authorized_publication: authorized !== undefined ? authorized : apt.authorized_publication,
         };
       }
       return apt;
@@ -269,6 +301,11 @@ export const DataStore = {
     const updated = [newItem, ...this.getWaitlist()];
     setStored(STORAGE_KEYS.WAITLIST, updated);
     return updated;
+  },
+
+  // AI Insights
+  getAIInsights(): AIInsight[] {
+    return getStored(STORAGE_KEYS.AI_INSIGHTS, initialAIInsights);
   },
 
   // User Role Switcher

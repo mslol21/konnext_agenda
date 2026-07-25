@@ -39,6 +39,7 @@ export interface Service {
   description: string;
   price: number;
   duration_minutes: number;
+  buffer_minutes?: number; // Preparation / chair cleaning time
   image_url: string;
   color: string;
   is_active: boolean;
@@ -78,6 +79,10 @@ export interface Client {
   email: string;
   birthday?: string;
   notes?: string;
+  tier?: 'padrao' | 'vip_ouro' | 'vip_diamante';
+  color_formula?: string; // e.g. "Igora 7.77 + 20vol (30g)"
+  allergies?: string;
+  preferred_brands?: string;
   total_spent: number;
   visits_count: number;
   last_visit?: string;
@@ -118,6 +123,10 @@ export interface Appointment {
   notes?: string;
   payment_status: 'pending' | 'paid' | 'refunded';
   payment_method?: 'pix' | 'credit_card' | 'debit_card' | 'cash';
+  before_image_url?: string;
+  after_image_url?: string;
+  authorized_publication?: boolean;
+  confirmation_stage?: 'pending' | '48h' | '24h' | '2h' | 'confirmed';
   created_at: string;
 }
 
@@ -211,20 +220,11 @@ export interface Testimonial {
   rating: number;
 }
 
-export interface NotificationItem {
+export interface AIInsight {
   id: string;
-  recipient_type: 'client' | 'professional' | 'admin';
   title: string;
-  message: string;
-  read: boolean;
-  type: 'booking_created' | 'booking_cancelled' | 'reminder' | 'waitlist';
-  created_at: string;
-}
-
-export interface AuditLog {
-  id: string;
-  user_name: string;
-  action: string;
-  details: string;
-  timestamp: string;
+  category: 'occupancy' | 'retention' | 'pricing' | 'marketing';
+  insight: string;
+  suggestion: string;
+  metric?: string;
 }

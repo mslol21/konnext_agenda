@@ -10,7 +10,7 @@ import {
   GalleryItem, 
   Testimonial,
   WaitlistItem,
-  LoyaltyCard
+  AIInsight
 } from '@/types';
 
 export const initialSalon: Salon = {
@@ -52,6 +52,7 @@ export const initialServices: Service[] = [
     description: 'Corte personalizado com visagismo, lavagem especial Kérastase e secagem modelada.',
     price: 180.00,
     duration_minutes: 60,
+    buffer_minutes: 10,
     image_url: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?w=600&auto=format&fit=crop&q=80',
     color: '#C08497',
     is_active: true,
@@ -66,6 +67,7 @@ export const initialServices: Service[] = [
     description: 'Técnica exclusiva de iluminação dos fios com proteção Olaplex, tonalização e reconstrução.',
     price: 450.00,
     duration_minutes: 180,
+    buffer_minutes: 15,
     image_url: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&auto=format&fit=crop&q=80',
     color: '#8B5E83',
     is_active: true,
@@ -80,6 +82,7 @@ export const initialServices: Service[] = [
     description: 'Alinhamento térmico 0% formaldeído, proporciona brilho espelhado e maciez intensa.',
     price: 320.00,
     duration_minutes: 120,
+    buffer_minutes: 15,
     image_url: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=600&auto=format&fit=crop&q=80',
     color: '#C08497',
     is_active: true,
@@ -94,6 +97,7 @@ export const initialServices: Service[] = [
     description: 'Higienização com xampu de nutrição, escovação e finalização com ondas babyliss duradouras.',
     price: 110.00,
     duration_minutes: 45,
+    buffer_minutes: 5,
     image_url: 'https://images.unsplash.com/photo-1560869713-7d0a29430803?w=600&auto=format&fit=crop&q=80',
     color: '#D99BBA',
     is_active: true,
@@ -108,6 +112,7 @@ export const initialServices: Service[] = [
     description: 'Higienização profunda, extração sem dor, peeling ultrassônico e máscara de colágeno.',
     price: 220.00,
     duration_minutes: 75,
+    buffer_minutes: 10,
     image_url: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&auto=format&fit=crop&q=80',
     color: '#8B5E83',
     is_active: true,
@@ -122,6 +127,7 @@ export const initialServices: Service[] = [
     description: 'Mapeamento facial visagista, alinhamento dos fios e pigmentação de alta durabilidade.',
     price: 95.00,
     duration_minutes: 45,
+    buffer_minutes: 5,
     image_url: 'https://images.unsplash.com/photo-1583001809873-a1284d5630be?w=600&auto=format&fit=crop&q=80',
     color: '#C08497',
     is_active: true,
@@ -136,6 +142,7 @@ export const initialServices: Service[] = [
     description: 'Cutilagem russa, esmaltação em gel e esfoliação com hidratação de parafina quente.',
     price: 130.00,
     duration_minutes: 60,
+    buffer_minutes: 10,
     image_url: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=600&auto=format&fit=crop&q=80',
     color: '#D99BBA',
     is_active: true,
@@ -150,6 +157,7 @@ export const initialServices: Service[] = [
     description: 'Tratamento intensivo de restauração da fibra capilar com ampolas concentradas e secagem.',
     price: 250.00,
     duration_minutes: 50,
+    buffer_minutes: 10,
     image_url: 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?w=600&auto=format&fit=crop&q=80',
     color: '#8B5E83',
     is_active: true,
@@ -239,7 +247,11 @@ export const initialClients: Client[] = [
     phone: '(11) 97123-4567',
     email: 'fernanda.lima@gmail.com',
     birthday: '1992-05-15',
-    notes: 'Prefere café sem açúcar. Sensibilidade a produtos com perfume forte.',
+    notes: 'Prefere café sem açúcar. Sensibilidade no couro cabeludo.',
+    tier: 'vip_ouro',
+    color_formula: 'Wella Illumina 8.69 + 20vol (40g)',
+    allergies: 'Alergia a fragrâncias florais sintéticas',
+    preferred_brands: 'Kérastase, Olaplex',
     total_spent: 1240.00,
     visits_count: 7,
     last_visit: '2026-07-10',
@@ -252,9 +264,13 @@ export const initialClients: Client[] = [
     phone: '(11) 98234-5678',
     email: 'mariana.m@hotmail.com',
     birthday: '1988-11-20',
-    notes: 'Cliente vip. Gosta de fazer luzes a cada 3 meses.',
+    notes: 'Cliente vip diamante. Gosta de fazer luzes a cada 3 meses.',
+    tier: 'vip_diamante',
+    color_formula: 'Igora Royal 9.7 + Blondme 9+ (30g)',
+    allergies: 'Nenhuma alergia relatada',
+    preferred_brands: 'Schwarzkopf Blondme',
     total_spent: 2150.00,
-    visits_count: 10,
+    visits_count: 12,
     last_visit: '2026-07-02',
     created_at: '2025-10-05',
   },
@@ -266,6 +282,10 @@ export const initialClients: Client[] = [
     email: 'patricia.souza@outlook.com',
     birthday: '1995-08-03',
     notes: 'Faz escova todas as sextas-feiras.',
+    tier: 'padrao',
+    color_formula: 'Sem tonalização prévia',
+    allergies: 'Nenhuma',
+    preferred_brands: 'L\'Oréal Professionnel',
     total_spent: 890.00,
     visits_count: 8,
     last_visit: '2026-07-18',
@@ -273,7 +293,6 @@ export const initialClients: Client[] = [
   }
 ];
 
-// Helper to get formatted YYYY-MM-DD
 const getTodayStr = (offsetDays = 0) => {
   const d = new Date();
   d.setDate(d.getDate() + offsetDays);
@@ -306,6 +325,10 @@ export const initialAppointments: Appointment[] = [
     notes: 'Manter comprimento das pontas',
     payment_status: 'paid',
     payment_method: 'pix',
+    confirmation_stage: 'confirmed',
+    before_image_url: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400',
+    after_image_url: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?w=400',
+    authorized_publication: true,
     created_at: getTodayStr(-1),
   },
   {
@@ -332,6 +355,7 @@ export const initialAppointments: Appointment[] = [
     status: 'scheduled',
     notes: 'Usou cupom BELEZA10',
     payment_status: 'pending',
+    confirmation_stage: '24h',
     created_at: getTodayStr(-2),
   },
   {
@@ -357,6 +381,7 @@ export const initialAppointments: Appointment[] = [
     final_price: 220.00,
     status: 'scheduled',
     payment_status: 'pending',
+    confirmation_stage: '48h',
     created_at: getTodayStr(0),
   }
 ];
@@ -461,5 +486,32 @@ export const initialWaitlist: WaitlistItem[] = [
     notes: 'Prefere horário da tarde a partir das 14h',
     status: 'waiting',
     created_at: getTodayStr(-1),
+  }
+];
+
+export const initialAIInsights: AIInsight[] = [
+  {
+    id: 'ai-1',
+    title: 'Melhor Horário para Abertura de Agenda',
+    category: 'occupancy',
+    insight: 'Análise de 6 meses de dados indica que as quintas-feiras às 18h00 possuem 97% de ocupação histórica.',
+    suggestion: 'Abrir horários extras de encaixe com 15% de sobretaxa ou criar pacotes expressos de fim de tarde.',
+    metric: '97% Taxa de Ocupação'
+  },
+  {
+    id: 'ai-2',
+    title: 'Previsão de Retorno de Clientes',
+    category: 'retention',
+    insight: 'Clientes que realizaram Progressiva Orgânica tendem a retornar ao salão em média a cada 92 dias.',
+    suggestion: 'Enviar notificação automática de lembrete de retoque de raiz 80 dias após o procedimento.',
+    metric: 'Retorno médio: 92 dias'
+  },
+  {
+    id: 'ai-3',
+    title: 'Otimização de Faturamento nas Terças-Feiras',
+    category: 'marketing',
+    insight: 'Terça-feira é o dia com menor taxa de agendamento (38% de ocupação).',
+    suggestion: 'Lançar a promoção "Terça-Feira da Hidratação" com 15% de desconto para preencher a agenda da equipe.',
+    metric: '38% Ocupação Atual'
   }
 ];
