@@ -1,0 +1,21 @@
+{
+  "name": "Konnexy Agenda - Sistema de Agendamento Online",
+  "short_name": "Konnexy Agenda",
+  "description": "Sistema de Agendamento Online para Salão de Beleza e Estética",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#C08497",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
