@@ -34,7 +34,7 @@ export interface InventoryItem {
   category: string;
   quantity: number;
   min_quantity: number;
-  unit: string; // e.g. "unidades", "frascos", "tubos"
+  unit: string;
   cost_price: number;
   supplier: string;
   status: 'ok' | 'low' | 'critical';
@@ -59,7 +59,7 @@ export interface Service {
   description: string;
   price: number;
   duration_minutes: number;
-  buffer_minutes?: number; // Preparation / chair cleaning time
+  buffer_minutes?: number;
   image_url: string;
   color: string;
   is_active: boolean;
@@ -76,18 +76,18 @@ export interface Professional {
   description: string;
   experience_years: number;
   instagram: string;
-  working_days: number[]; // e.g. [1, 2, 3, 4, 5, 6]
+  working_days: number[];
   working_hours: {
-    start: string; // "09:00"
-    end: string;   // "18:00"
+    start: string;
+    end: string;
   };
   break_hours?: {
-    start: string; // "12:00"
-    end: string;   // "13:00"
+    start: string;
+    end: string;
   };
   status: 'active' | 'vacation' | 'inactive';
-  services: string[]; // Service IDs
-  commission_rate: number; // e.g. 40 (%)
+  services: string[];
+  commission_rate: number;
 }
 
 export interface Client {
@@ -100,7 +100,7 @@ export interface Client {
   birthday?: string;
   notes?: string;
   tier?: 'padrao' | 'vip_ouro' | 'vip_diamante';
-  color_formula?: string; // e.g. "Igora 7.77 + 20vol (30g)"
+  color_formula?: string;
   allergies?: string;
   preferred_brands?: string;
   total_spent: number;
@@ -133,9 +133,9 @@ export interface Appointment {
   service_price?: number;
   service_duration?: number;
   service_color?: string;
-  date: string; // YYYY-MM-DD
-  start_time: string; // HH:mm
-  end_time: string;   // HH:mm
+  date: string;
+  start_time: string;
+  end_time: string;
   price: number;
   discount: number;
   final_price: number;
@@ -170,7 +170,7 @@ export interface Review {
   client_avatar?: string;
   professional_name: string;
   service_name: string;
-  rating: number; // 1 to 5
+  rating: number;
   comment: string;
   is_featured: boolean;
   created_at: string;
@@ -194,4 +194,21 @@ export interface AIInsight {
   insight: string;
   suggestion: string;
   metric?: string;
+}
+
+export interface GalleryItem {
+  id: string;
+  title: string;
+  category: string;
+  image_url: string;
+  description?: string;
+}
+
+export interface Testimonial {
+  id: string;
+  client_name: string;
+  client_role?: string;
+  client_avatar: string;
+  content: string;
+  rating: number;
 }

@@ -10,7 +10,8 @@ import {
   WaitlistItem,
   AIInsight,
   SalonUnit,
-  InventoryItem
+  InventoryItem,
+  GalleryItem
 } from '@/types';
 
 export const initialSalon: Salon = {
