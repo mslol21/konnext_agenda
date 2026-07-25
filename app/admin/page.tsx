@@ -131,13 +131,13 @@ export default function AdminDashboardPage() {
           <Link href="/admin/servicos" className="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:bg-rose-50">
             Gestão de Serviços
           </Link>
-          <Link href="/admin/profissionais" className="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:bg-rose-50">
-            Profissionais & Horários
+          <Link href="/admin/whatsapp" className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 shadow-sm flex items-center gap-1.5 shrink-0">
+            <Bot className="w-3.5 h-3.5" /> WhatsApp & Gemini AI
           </Link>
-          <Link href="/admin/clientes" className="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:bg-rose-50">
+          <Link href="/admin/clientes" className="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:bg-rose-50 shrink-0">
             CRM Clientes VIP
           </Link>
-          <Link href="/admin/financeiro" className="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:bg-rose-50">
+          <Link href="/admin/financeiro" className="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:bg-rose-50 shrink-0">
             Financeiro & Relatórios
           </Link>
         </div>

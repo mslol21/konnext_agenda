@@ -21,7 +21,8 @@ import {
   FileText, 
   CheckCircle2,
   AlertCircle,
-  Download
+  Download,
+  MessageSquare
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -638,6 +639,21 @@ export function BookingWizardModal() {
                   <p><strong className="text-slate-700 dark:text-slate-200">Data e Hora:</strong> {createdAppointment.date} às {createdAppointment.start_time}</p>
                   <p><strong className="text-[#8B5E83] dark:text-rose-300">Valor Total:</strong> {formatCurrency(createdAppointment.final_price)}</p>
                 </div>
+              </div>
+
+              {/* Primary Action: Launch WhatsApp Cloud API Conversation */}
+              <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-center space-y-2">
+                <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                  Deseja atuar no atendimento automático via WhatsApp?
+                </p>
+                <a
+                  href={`https://wa.me/5511987654321?text=${encodeURIComponent(`✨ *Olá! Gostaria de confirmar meu agendamento no Konnexy Agenda!*\n\n📋 *Código*: #${createdAppointment.id}\n👤 *Cliente*: ${createdAppointment.client_name}\n✂️ *Serviço*: ${createdAppointment.service_name}\n🌟 *Profissional*: ${createdAppointment.professional_name}\n🗓️ *Data*: ${createdAppointment.date} às ${createdAppointment.start_time}\n💰 *Valor*: R$ ${createdAppointment.final_price.toFixed(2)}\n\nPodem me confirmar os detalhes? Obrigado!`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md flex items-center justify-center gap-2 transition-all hover:scale-102"
+                >
+                  <MessageSquare className="w-4 h-4" /> 📲 Enviar Agendamento no WhatsApp Oficial
+                </a>
               </div>
 
               {/* Sync Calendar Actions */}
