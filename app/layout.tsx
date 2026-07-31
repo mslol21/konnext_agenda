@@ -5,6 +5,7 @@ import { RoleSwitcher } from '@/components/RoleSwitcher';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/landing/Footer';
 import { BookingWizardModal } from '@/components/BookingWizardModal';
+import { SiteAIChatWidget } from '@/components/SiteAIChatWidget';
 import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
@@ -39,6 +40,9 @@ export default function RootLayout({
 
           {/* Main Content Page */}
           <div className="flex-1">{children}</div>
+
+          {/* Floating AI Chat Widget on Website */}
+          <SiteAIChatWidget />
 
           {/* Online Booking Wizard Modal */}
           <BookingWizardModal />
