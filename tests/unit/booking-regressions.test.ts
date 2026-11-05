@@ -33,7 +33,7 @@ describe('Booking validation regressions', () => {
   });
   it.each(['expired', 'different-service', 'different-time', 'missing'])('rejects %s hold without confirming an appointment', async scenario => {
     const tx = {
-      customer: { findFirst: vi.fn().mockResolvedValue({ id: 'customer-1' }), update: vi.fn().mockResolvedValue({ id: 'customer-1' }) },
+      customer: { findFirst: vi.fn().mockResolvedValue({ id: 'customer-1', email: customer.email, phone: customer.phone }), update: vi.fn().mockResolvedValue({ id: 'customer-1', email: customer.email, phone: customer.phone }) },
       service: { findFirst: vi.fn().mockResolvedValue({ id: params.serviceId, price: 100 }) },
       appointmentHold: { findFirst: vi.fn().mockResolvedValue(scenario === 'missing' ? null : {
         id: 'hold-a', appointmentId: 'appointment-a',

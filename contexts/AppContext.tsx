@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Role, Salon } from '@/types';
+import { initialSalon } from '@/lib/mock-data';
 import { DataStore } from '@/lib/store';
 
 interface AppContextType {
@@ -21,7 +22,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [role, setRoleState] = useState<Role>('client');
-  const [salon, setSalonState] = useState<Salon>(() => DataStore.getSalon());
+  const [salon, setSalonState] = useState<Salon>(initialSalon);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);

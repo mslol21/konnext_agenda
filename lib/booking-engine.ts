@@ -250,15 +250,11 @@ export async function confirmBooking(params: ConfirmBookingParams) {
     });
 
     if (customer) {
-      customer = await tx.customer.update({
-        where: { id: customer.id },
-        data: {
-          name: custData.name.trim(),
-          phone: custData.phone.trim(),
-          email: custData.email.trim().toLowerCase(),
-          notes: custData.notes ? `${customer.notes ?? ''}\n${custData.notes}`.trim() : customer.notes,
-        },
-      });
+      // Public booking must never overwrite an existing customer's identity or private notes.
+      if (customer.email.toLowerCase() !== custData.email.trim().toLowerCase() ||
+          customer.phone.replace(/\D/g, '') !== custData.phone.replace(/\D/g, '')) {
+        throw new BookingValidationError('Os dados de contato não correspondem ao cadastro. Entre em contato com o estabelecimento.');
+      }
     } else {
       customer = await tx.customer.create({
         data: {

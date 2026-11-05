@@ -472,7 +472,7 @@ export function BookingWizardModal() {
                   return (
                     <div
                       key={srv.id}
-                      onClick={() => setSelectedService(srv)}
+                      onClick={() => { setSelectedService(srv); setSelectedProfessional(null); setSelectedTime(''); setAppliedCoupon(null); setDiscountAmount(0); }}
                       className={cn(
                         "p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between group",
                         isSelected
