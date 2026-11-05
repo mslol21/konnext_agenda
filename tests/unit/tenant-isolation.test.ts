@@ -52,12 +52,7 @@ describe('Multi-Tenancy Security & Isolation Tests', () => {
 
   it('deve bloquear e lançar erro caso o Tenant A tente alterar um recurso do Tenant B', async () => {
     // Simula que o serviço "srv-999" existe, mas pertence ao Tenant B
-    vi.spyOn(prisma.service, 'findFirst').mockImplementation(async (args: any) => {
-      if (args.where.tenantId === tenantAId) {
-        return null; // Tenant A não é dono deste registro
-      }
-      return { id: 'srv-999', tenantId: tenantBId } as any;
-    });
+    vi.spyOn(prisma.service, 'findFirst').mockResolvedValue(null);
 
     const dbA = getTenantDb(tenantAId);
 

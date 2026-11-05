@@ -1,3 +1,4 @@
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { getWhatsAppConfig, sendWhatsAppCloudMessage } from '@/lib/whatsapp';
 import { generateGeminiAIResponse } from '@/lib/gemini';
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest) {
 
   const { verifyToken } = getWhatsAppConfig();
 
-  if (mode === 'subscribe' && token === verifyToken) {
+  if (verifyToken && mode === 'subscribe' && token === verifyToken) {
     console.log('Meta WhatsApp Webhook verificado com sucesso!');
     return new NextResponse(challenge, { status: 200 });
   }
@@ -24,7 +25,15 @@ export async function GET(req: NextRequest) {
 // POST: Recebe eventos e mensagens do WhatsApp Cloud API
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const secret = process.env.WHATSAPP_APP_SECRET;
+    if (!secret) return NextResponse.json({ error: 'Webhook não configurado.' }, { status: 503 });
+    const rawBody = await req.text();
+    const signature = req.headers.get('x-hub-signature-256') || '';
+    const expected = `sha256=${createHmac('sha256', secret).update(rawBody).digest('hex')}`;
+    if (signature.length !== expected.length || !timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
+      return NextResponse.json({ error: 'Assinatura inválida.' }, { status: 401 });
+    }
+    const body = JSON.parse(rawBody);
 
     // Valida estrutura básica do payload da Meta
     if (body.object === 'whatsapp_business_account') {
@@ -37,7 +46,9 @@ export async function POST(req: NextRequest) {
         const fromNumber = message.from; // Número do cliente (ex: 5511999998888)
         const textBody = message.text.body;
 
-        console.log(`[WhatsApp Webhook] Mensagem recebida de ${fromNumber}: "${textBody}"`);
+        if (process.env.WHATSAPP_AUTO_REPLY_ENABLED !== 'true') {
+          return NextResponse.json({ status: 'EVENT_RECEIVED' });
+        }
 
         // Responde de forma inteligente usando a IA do Konnexy
         const aiAnswer = await generateGeminiAIResponse(textBody);

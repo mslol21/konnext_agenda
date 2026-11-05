@@ -21,14 +21,14 @@ export function RoleSwitcher() {
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 font-medium">
           <span className="inline-flex items-center gap-1.5 text-cyan-400 font-semibold px-2 py-0.5 rounded-full bg-cyan-950/40 border border-cyan-500/30 text-[11px]">
-            <ShieldAlert className="w-3.5 h-3.5 text-cyan-400" /> Konnexy Ecosystem:
+            <ShieldAlert className="w-3.5 h-3.5 text-cyan-400" /> Painéis de demonstração
           </span>
           <span className="hidden sm:inline text-slate-400 text-[11px]">
-            Demonstração multi-perfil em tempo real:
+            Dados locais neste navegador; sem login ou sincronização.
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 no-scrollbar">
+        <div className="flex items-center gap-1.5 max-w-full overflow-x-auto py-0.5 no-scrollbar">
           {rolesConfig.map((r) => {
             const isActive = role === r.role;
             return (

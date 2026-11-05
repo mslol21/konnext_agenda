@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { initialServices } from '@/lib/mock-data';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://calixtobeauty.com.br';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://agenda.konnexy.com.br';
 
   const serviceUrls = initialServices.map((service) => ({
     url: `${baseUrl}/servicos/${service.slug}`,
@@ -17,12 +17,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 1.0,
-    },
-    {
-      url: `${baseUrl}/cliente`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
     },
     ...serviceUrls,
   ];

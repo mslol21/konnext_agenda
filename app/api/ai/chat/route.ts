@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   try {
     const { message } = await req.json();
 
-    if (!message || typeof message !== 'string') {
+    if (!message || typeof message !== 'string' || message.length > 2000) {
       return NextResponse.json({ error: 'Mensagem inválida.' }, { status: 400 });
     }
 

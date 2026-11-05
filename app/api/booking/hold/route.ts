@@ -1,24 +1,19 @@
+import { bookingRequestSchema } from '@/lib/booking-validation';
 import { NextRequest, NextResponse } from 'next/server';
 import { createHold, cancelHold, BookingConflictError, BookingValidationError } from '@/lib/booking-engine';
-import { prisma } from '@/lib/db';
+import { resolveBookingTenant } from '@/lib/booking-tenant';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const parsed = bookingRequestSchema.safeParse(await request.json());
+    if (!parsed.success) return NextResponse.json({ error: 'Dados de agendamento inválidos.' }, { status: 400 });
+    const body = parsed.data;
     let { tenantId, sessionToken, serviceId, professionalId, startAt, endAt } = body;
-    const tenantSlug = body.tenantSlug || request.headers.get('x-tenant-slug');
+    tenantId = await resolveBookingTenant(request.headers, body) || undefined;
 
-    if (!tenantId && tenantSlug) {
-      const tenant = await prisma.tenant.findUnique({
-        where: { slug: tenantSlug },
-        select: { id: true },
-      });
-      if (tenant) {
-        tenantId = tenant.id;
-      }
-    }
+
 
     if (!tenantId || !sessionToken || !serviceId || !professionalId || !startAt || !endAt) {
       return NextResponse.json(
@@ -41,6 +36,7 @@ export async function POST(request: NextRequest) {
       data: hold,
     });
   } catch (error: any) {
+    if (error instanceof SyntaxError) return NextResponse.json({ error: 'JSON inválido.' }, { status: 400 });
     if (error instanceof BookingConflictError) {
       return NextResponse.json({ error: error.message, code: error.code }, { status: 409 });
     }
@@ -49,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
     console.error('Erro na criação de hold:', error);
     return NextResponse.json(
-      { error: error.message || 'Erro ao reter horário temporariamente.' },
+      { error: 'Não foi possível reservar o horário. Tente novamente.' },
       { status: 500 }
     );
   }
@@ -69,7 +65,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error: any) {
     console.error('Erro ao cancelar hold:', error);
     return NextResponse.json(
-      { error: error.message || 'Erro ao liberar horário.' },
+      { error: 'Não foi possível liberar o horário.' },
       { status: 500 }
     );
   }

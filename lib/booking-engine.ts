@@ -1,6 +1,6 @@
 import { prisma } from './db';
 import { AppointmentStatus, PaymentStatus, TransactionStatus, Prisma } from '@prisma/client';
-import { isOverlapping } from './availability';
+import { getDayAvailability } from './availability';
 
 export class BookingConflictError extends Error {
   code = 'BOOKING_CONFLICT';
@@ -49,6 +49,26 @@ export interface ConfirmBookingParams {
   paymentStatus?: PaymentStatus;
 }
 
+/** Validate the same catalog, schedule, buffers and policy used to display slots. */
+async function validateSlot(params: CreateHoldParams | ConfirmBookingParams) {
+  const startAt = new Date(params.startAt);
+  const endAt = new Date(params.endAt);
+  if (!Number.isFinite(startAt.getTime()) || !Number.isFinite(endAt.getTime()) || startAt <= new Date() || endAt <= startAt) {
+    throw new BookingValidationError('Intervalo de agendamento inválido ou no passado.');
+  }
+  const localDate = new Date(startAt.getTime() - 3 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const availability = await getDayAvailability({
+    tenantId: params.tenantId,
+    serviceIds: [params.serviceId],
+    professionalId: params.professionalId,
+    dateStr: localDate,
+    excludeSessionToken: params.sessionToken,
+  });
+  if (!availability.slots.some(slot => slot.startAt === startAt.toISOString() && slot.endAt === endAt.toISOString())) {
+    throw new BookingValidationError('Horário indisponível: verifique expediente, duração e antecedência.');
+  }
+}
+
 /**
  * Cria ou renova um Hold de 5 minutos para prender a vaga enquanto o cliente digita seus dados.
  */
@@ -64,6 +84,10 @@ export async function createHold(params: CreateHoldParams) {
   const startAt = new Date(params.startAt);
   const endAt = new Date(params.endAt);
   const now = new Date();
+  if (!Number.isInteger(holdDurationMinutes) || holdDurationMinutes < 1 || holdDurationMinutes > 5) {
+    throw new BookingValidationError('A reserva temporária deve durar entre 1 e 5 minutos.');
+  }
+  await validateSlot(params);
   const expiresAt = new Date(now.getTime() + holdDurationMinutes * 60 * 1000);
 
   if (startAt <= now) {
@@ -76,7 +100,7 @@ export async function createHold(params: CreateHoldParams) {
 
   // Obter serviço para registrar preço base
   const service = await prisma.service.findFirst({
-    where: { id: serviceId, tenantId },
+    where: { id: serviceId, tenantId, isActive: true },
   });
 
   if (!service) {
@@ -86,31 +110,16 @@ export async function createHold(params: CreateHoldParams) {
   // Executar de forma atômica
   return await prisma.$transaction(async (tx) => {
     // 1. Limpar holds expirados desse profissional para não falsamente bloquear o horário
-    const expiredHolds = await tx.appointmentHold.findMany({
-      where: {
-        expiresAt: { lt: now },
-        appointment: {
-          professionalId,
-          status: AppointmentStatus.held,
-        },
-      },
-      select: { appointmentId: true },
+    await tx.appointment.deleteMany({
+      where: { tenantId, professionalId, status: AppointmentStatus.held,
+        OR: [{ holds: { is: { expiresAt: { lte: now } } } }, { holds: { is: null } }] },
     });
-
-    if (expiredHolds.length > 0) {
-      const appIds = expiredHolds.map((h) => h.appointmentId);
-      await tx.appointmentHold.deleteMany({
-        where: { appointmentId: { in: appIds } },
-      });
-      await tx.appointment.deleteMany({
-        where: { id: { in: appIds }, status: AppointmentStatus.held },
-      });
-    }
 
     // 2. Verificar se este mesmo sessionToken já tem um hold ativo
     const existingSessionHold = await tx.appointmentHold.findFirst({
       where: {
         sessionToken,
+        appointment: { tenantId, status: AppointmentStatus.held },
         expiresAt: { gt: now },
       },
       include: { appointment: true },
@@ -119,6 +128,7 @@ export async function createHold(params: CreateHoldParams) {
     if (existingSessionHold) {
       // Se for para o mesmo profissional e horário, apenas renovamos a expiração
       if (
+        existingSessionHold.appointment.serviceId === serviceId &&
         existingSessionHold.appointment.professionalId === professionalId &&
         existingSessionHold.appointment.startAt.getTime() === startAt.getTime() &&
         existingSessionHold.appointment.endAt.getTime() === endAt.getTime()
@@ -162,21 +172,12 @@ export async function createHold(params: CreateHoldParams) {
       );
     }
 
-    // 4. Buscar cliente genérico de checkout temporário ou criar cliente fictício para o hold
-    let customer = await tx.customer.findFirst({
-      where: { tenantId, email: `temp_hold_${sessionToken}@konnexy.internal` },
+    // A single placeholder per tenant prevents unique-phone collisions between concurrent checkouts.
+    const customer = await tx.customer.upsert({
+      where: { tenantId_email: { tenantId, email: 'checkout@konnexy.internal' } },
+      update: {},
+      create: { tenantId, name: 'Reserva em Andamento', email: 'checkout@konnexy.internal', phone: 'hold-checkout' },
     });
-
-    if (!customer) {
-      customer = await tx.customer.create({
-        data: {
-          tenantId,
-          name: 'Reserva em Andamento',
-          email: `temp_hold_${sessionToken}@konnexy.internal`,
-          phone: '00000000000',
-        },
-      });
-    }
 
     // 5. Criar Appointment com status 'held'
     let newAppointment;
@@ -238,6 +239,7 @@ export async function confirmBooking(params: ConfirmBookingParams) {
   const endAt = new Date(params.endAt);
   const now = new Date();
 
+  await validateSlot(params);
   return await prisma.$transaction(async (tx) => {
     // 1. Upsert do Customer real do negócio pelo e-mail ou telefone
     let customer = await tx.customer.findFirst({
@@ -270,15 +272,15 @@ export async function confirmBooking(params: ConfirmBookingParams) {
     }
 
     const service = await tx.service.findFirst({
-      where: { id: serviceId, tenantId },
+      where: { id: serviceId, tenantId, isActive: true },
     });
 
     if (!service) {
       throw new BookingValidationError('Serviço não encontrado.');
     }
 
-    const finalPrice = params.price ?? Number(service.price);
-    const discount = params.discount ?? 0;
+    const finalPrice = Number(service.price);
+    const discount = 0; // Public bookings always use the authoritative catalog price.
 
     // 2. Se temos uma sessão com hold ativo
     let existingHold = null;
@@ -287,6 +289,7 @@ export async function confirmBooking(params: ConfirmBookingParams) {
         where: {
           sessionToken,
           appointment: {
+            tenantId,
             professionalId,
             status: AppointmentStatus.held,
           },
@@ -295,7 +298,16 @@ export async function confirmBooking(params: ConfirmBookingParams) {
       });
     }
 
+    if (sessionToken && !existingHold) {
+      throw new BookingValidationError('Reserva temporária não encontrada. Selecione o horário novamente.');
+    }
     if (existingHold) {
+      if (existingHold.expiresAt <= now ||
+          existingHold.appointment.serviceId !== serviceId ||
+          existingHold.appointment.startAt.getTime() !== startAt.getTime() ||
+          existingHold.appointment.endAt.getTime() !== endAt.getTime()) {
+        throw new BookingValidationError('Reserva expirada ou diferente do horário selecionado.');
+      }
       // Remover o hold e atualizar o appointment existente para CONFIRMED
       await tx.appointmentHold.delete({ where: { id: existingHold.id } });
 
@@ -338,19 +350,14 @@ export async function confirmBooking(params: ConfirmBookingParams) {
         });
       }
 
-      // Atualizar métricas do cliente
-      await tx.customer.update({
-        where: { id: customer.id },
-        data: {
-          visitsCount: { increment: 1 },
-          lastVisit: now,
-          totalSpent: { increment: confirmedAppointment.finalPrice },
-        },
-      });
 
       return confirmedAppointment;
     }
 
+    await tx.appointment.deleteMany({
+      where: { tenantId, professionalId, status: AppointmentStatus.held,
+        OR: [{ holds: { is: { expiresAt: { lte: now } } } }, { holds: { is: null } }] },
+    });
     // 3. Caso não venha de um hold (ex: agendamento direto via recepção/admin)
     // Verificar colisão
     const conflicts = await tx.appointment.findMany({
@@ -426,15 +433,6 @@ export async function confirmBooking(params: ConfirmBookingParams) {
       });
     }
 
-    // Atualizar métricas do cliente
-    await tx.customer.update({
-      where: { id: customer.id },
-      data: {
-        visitsCount: { increment: 1 },
-        lastVisit: now,
-        totalSpent: { increment: appointment.finalPrice },
-      },
-    });
 
     return appointment;
   });
@@ -444,42 +442,18 @@ export async function confirmBooking(params: ConfirmBookingParams) {
  * Libera um hold imediatamente caso o usuário desista ou feche o modal de agendamento.
  */
 export async function cancelHold(sessionToken: string) {
-  const holds = await prisma.appointmentHold.findMany({
-    where: { sessionToken },
+  return prisma.$transaction(async tx => {
+    // Deleting the appointment cascades its hold; scope status in the same statement.
+    const result = await tx.appointment.deleteMany({
+      where: { status: AppointmentStatus.held, holds: { is: { sessionToken } } },
+    });
+    return result.count > 0;
   });
-
-  if (holds.length === 0) return false;
-
-  const appIds = holds.map((h) => h.appointmentId);
-  await prisma.appointmentHold.deleteMany({
-    where: { sessionToken },
-  });
-  await prisma.appointment.deleteMany({
-    where: { id: { in: appIds }, status: AppointmentStatus.held },
-  });
-
-  return true;
 }
 
-/**
- * Limpa periodicamente todos os holds expirados.
- */
 export async function cleanupExpiredHolds(): Promise<number> {
-  const now = new Date();
-  const expired = await prisma.appointmentHold.findMany({
-    where: { expiresAt: { lt: now } },
-    select: { appointmentId: true },
+  const result = await prisma.appointment.deleteMany({
+    where: { status: AppointmentStatus.held, holds: { is: { expiresAt: { lte: new Date() } } } },
   });
-
-  if (expired.length === 0) return 0;
-
-  const ids = expired.map((e) => e.appointmentId);
-  await prisma.appointmentHold.deleteMany({
-    where: { appointmentId: { in: ids } },
-  });
-  const deletedAppointments = await prisma.appointment.deleteMany({
-    where: { id: { in: ids }, status: AppointmentStatus.held },
-  });
-
-  return deletedAppointments.count;
+  return result.count;
 }

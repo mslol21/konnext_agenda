@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   parseLocalToUtc,
   formatUtcToLocalTime,
@@ -73,12 +73,17 @@ describe('Motor de Disponibilidade - Funções Auxiliares', () => {
 });
 
 describe('Motor de Disponibilidade - Cálculo de Slots do Dia', () => {
+  afterEach(() => vi.useRealTimers());
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-05T12:00:00Z'));
 
     vi.mocked(prisma.tenant.findUnique).mockResolvedValue({
       id: 'tenant-1',
       name: 'Konnexy Beauty Studio',
+      isActive: true,
+      businessSettings: { minAdvanceMinutes: 0, maxAdvanceDays: 60 },
       minAdvanceMinutes: 0, // Para permitir testes com qualquer horário futuro
       maxAdvanceDays: 60,
     } as any);

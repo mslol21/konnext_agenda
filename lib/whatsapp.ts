@@ -4,7 +4,7 @@ export function getWhatsAppConfig() {
   
   let phoneNumberId = isEnvAvailable ? process.env.WHATSAPP_PHONE_NUMBER_ID || '' : '';
   let accessToken = isEnvAvailable ? process.env.WHATSAPP_ACCESS_TOKEN || '' : '';
-  let verifyToken = isEnvAvailable ? process.env.WHATSAPP_VERIFY_TOKEN || 'konnexy_verify_token_2026' : 'konnexy_verify_token_2026';
+  let verifyToken = isEnvAvailable ? process.env.WHATSAPP_VERIFY_TOKEN || '' : '';
   let autoReplyEnabled = true;
 
   if (typeof window !== 'undefined') {

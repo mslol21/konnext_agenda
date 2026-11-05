@@ -305,7 +305,7 @@ export const DataStore = {
       discount = coupon.discount_value;
     }
 
-    return { valid: true, coupon, discount };
+    return { valid: true, coupon, discount: Math.max(0, Math.min(amount, discount)) };
   },
 
   // Reviews
@@ -346,7 +346,7 @@ export const DataStore = {
 
   // User Role Switcher
   getUserRole(): 'client' | 'professional' | 'receptionist' | 'admin' {
-    return getStored(STORAGE_KEYS.ROLE, 'admin');
+    return getStored(STORAGE_KEYS.ROLE, 'client');
   },
   setUserRole(role: 'client' | 'professional' | 'receptionist' | 'admin'): void {
     setStored(STORAGE_KEYS.ROLE, role);

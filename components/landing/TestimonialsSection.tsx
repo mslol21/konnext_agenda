@@ -15,13 +15,13 @@ export function TestimonialsSection() {
         <div className="text-center max-w-3xl mx-auto space-y-4">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 text-xs font-semibold uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Satisfação Comprovada</span>
+            <span>Exemplos de Avaliações</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
-            Experiência & Avaliações Reais
+            Como as avaliações aparecem
           </h2>
           <p className="text-slate-400 text-base max-w-xl mx-auto">
-            Feedback coletado de forma 100% automatizada após a conclusão de cada procedimento no sistema.
+            Depoimentos fictícios para demonstrar a apresentação das avaliações no sistema.
           </p>
         </div>
 
@@ -57,7 +57,7 @@ export function TestimonialsSection() {
                   </p>
                 </div>
                 <span className="text-[11px] text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-2.5 py-1 rounded-full font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Verificado
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Exemplo
                 </span>
               </div>
             </div>

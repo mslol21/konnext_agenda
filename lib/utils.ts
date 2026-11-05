@@ -35,7 +35,7 @@ export function getGoogleCalendarUrl(appointment: Appointment): string {
   const details = encodeURIComponent(`Agendamento de ${appointment.service_name} no Konnexy Agenda.\nProfissional: ${appointment.professional_name}\nValor: ${formatCurrency(appointment.final_price)}`);
   const location = encodeURIComponent('Alameda Gabriel Monteiro da Silva, 1420 - Jardins, São Paulo - SP');
 
-  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dtStart}/${dtEnd}&details=${details}&location=${location}`;
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dtStart}/${dtEnd}&details=${details}&location=${location}&ctz=America%2FSao_Paulo`;
 }
 
 // Generate Outlook Web Calendar URL
@@ -86,6 +86,7 @@ END:VCALENDAR`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
 
 // CSV Exporter
@@ -98,7 +99,7 @@ export function exportToCSV(data: Record<string, any>[], filename: string) {
 
   for (const row of data) {
     const values = headers.map(header => {
-      const escaped = ('' + (row[header] ?? '')).replace(/"/g, '\\"');
+      const escaped = ('' + (row[header] ?? '')).replace(/"/g, '""');
       return `"${escaped}"`;
     });
     csvRows.push(values.join(','));
@@ -112,6 +113,7 @@ export function exportToCSV(data: Record<string, any>[], filename: string) {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
 
 // PDF Receipt Generator
@@ -129,7 +131,7 @@ export function generateReceiptPDF(appointment: Appointment) {
 
   doc.setFontSize(12);
   doc.setFont('helvetica', 'normal');
-  doc.text('COMPROVANTE DE AGENDAMENTO E PAGAMENTO', 15, 30);
+  doc.text('COMPROVANTE DE AGENDAMENTO', 15, 30);
 
   // Content
   doc.setTextColor(30, 41, 59);
@@ -168,7 +170,7 @@ export function generateReceiptPDF(appointment: Appointment) {
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(192, 132, 151);
-  doc.text(`TOTAL PAGO: ${formatCurrency(appointment.final_price)}`, 140, finalY + 32);
+  doc.text(`${appointment.payment_status === 'paid' ? 'TOTAL PAGO' : 'VALOR A PAGAR'}: ${formatCurrency(appointment.final_price)}`, 140, finalY + 32);
 
   // Footer
   doc.setFontSize(9);
@@ -178,4 +180,9 @@ export function generateReceiptPDF(appointment: Appointment) {
   doc.text('Alameda Gabriel Monteiro da Silva, 1420 - Jardins, SP | Tel: (11) 98765-4321', 15, 276);
 
   doc.save(`Comprovante-${appointment.client_name.replace(/\s+/g, '_')}.pdf`);
+}
+
+/** Calendar date in the business timezone, including the hours after midnight UTC. */
+export function getLocalDate(date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
 }

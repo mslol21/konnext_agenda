@@ -32,7 +32,7 @@ export function HeroSection() {
 
         {/* Clear, Benefit-Driven Subtitle */}
         <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto font-normal leading-relaxed">
-          Clientes escolhem o serviço, profissional e horário com confirmação automática imediata. Gestão de agenda, recebimentos e atendimento por IA em um só fluxo.
+          Explore a escolha de serviços, profissionais e horários. Conheça os painéis de demonstração e veja como organizar o atendimento do seu negócio.
         </p>
 
         {/* Action CTAs */}
@@ -71,9 +71,9 @@ export function HeroSection() {
             <div className="w-8 h-8 rounded-lg bg-blue-950/60 border border-blue-500/30 text-blue-400 font-bold text-xs flex items-center justify-center">
               02
             </div>
-            <h2 className="text-sm font-bold text-white">Dia e horário em tempo real</h2>
+            <h2 className="text-sm font-bold text-white">Escolha o dia e horário</h2>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Grade sincronizada que impede choques de horário ou agendas duplicadas.
+              Consulte horários conforme a duração do serviço e a escala do profissional.
             </p>
           </div>
 
@@ -81,9 +81,9 @@ export function HeroSection() {
             <div className="w-8 h-8 rounded-lg bg-violet-950/60 border border-violet-500/30 text-violet-400 font-bold text-xs flex items-center justify-center">
               03
             </div>
-            <h2 className="text-sm font-bold text-white">Confirmação no ato</h2>
+            <h2 className="text-sm font-bold text-white">Confira os detalhes</h2>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Lembretes automáticos, sincronização com Google Calendar e WhatsApp oficial.
+              Revise os dados e salve o comprovante ou o evento na sua agenda pessoal.
             </p>
           </div>
         </div>

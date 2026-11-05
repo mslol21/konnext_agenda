@@ -7,23 +7,23 @@ export function FAQSection() {
   const faqs = [
     {
       q: 'Preciso enviar mensagem no WhatsApp para confirmar meu agendamento?',
-      a: 'Não! Todo o fluxo é 100% automático. Ao concluir a reserva pela plataforma, sua vaga fica garantida no banco de dados em tempo real, sem necessidade de aprovação manual.',
+      a: 'Na demonstração, os agendamentos ficam apenas no navegador e não reservam vagas reais. Em uma agenda conectada ao banco, a confirmação só aparece após o registro ser concluído.',
     },
     {
       q: 'Como funciona o cancelamento ou reagendamento de horário?',
-      a: 'Você pode cancelar ou escolher um novo horário diretamente na sua Área do Cliente até 24h antes do procedimento, com liberação automática da vaga para outros clientes.',
+      a: 'Os painéis permitem explorar o atendimento com dados de demonstração. Para uma reserva real, solicite cancelamento ou reagendamento à equipe do estabelecimento.',
     },
     {
       q: 'Quais formas de pagamento são aceitas?',
-      a: 'Aceitamos PIX instantâneo com QR Code dinâmico, cartões de crédito e débito, dinheiro no balcão e cupons de desconto exclusivos cadastrados pelo salão.',
+      a: 'A demonstração não realiza cobranças. Para atendimentos reais, consulte as formas de pagamento e as condições diretamente com o estabelecimento.',
     },
     {
       q: 'Posso selecionar um profissional específico de minha preferência?',
-      a: 'Sim. Você pode escolher seu profissional favorito na etapa 2 ou selecionar "Qualquer Profissional Disponível" para visualizar os horários mais próximos.',
+      a: 'Sim. Na etapa 2 são exibidos os profissionais ativos que atendem o serviço selecionado.',
     },
     {
       q: 'O que acontece se a data desejada estiver lotada?',
-      a: 'O sistema conta com Lista de Espera Inteligente. Se algum cliente cancelar ou vagar uma vaga, os inscritos são avisados automaticamente com prioridade.',
+      a: 'Escolha outra data. A agenda conectada ao banco também pode sugerir os próximos dias com horários disponíveis. Avisos automáticos de lista de espera ainda não estão integrados.',
     },
   ];
 
@@ -55,6 +55,8 @@ export function FAQSection() {
                 className="konnexy-card rounded-2xl overflow-hidden transition-all duration-200"
               >
                 <button
+                  aria-expanded={isOpen}
+                  aria-controls={`faq-answer-${idx}`}
                   onClick={() => setOpenIndex(isOpen ? null : idx)}
                   className="w-full px-6 py-5 text-left font-bold text-white text-base flex justify-between items-center gap-4 hover:text-cyan-300 transition-colors"
                 >
@@ -67,7 +69,7 @@ export function FAQSection() {
                 </button>
 
                 {isOpen && (
-                  <div className="px-6 pb-6 text-sm text-slate-300 leading-relaxed border-t border-white/5 pt-4">
+                  <div id={`faq-answer-${idx}`} className="px-6 pb-6 text-sm text-slate-300 leading-relaxed border-t border-white/5 pt-4">
                     {faq.a}
                   </div>
                 )}

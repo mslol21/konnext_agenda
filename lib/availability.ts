@@ -26,6 +26,7 @@ export interface DayAvailabilityResult {
 
 export interface AvailabilityQueryOptions {
   tenantId: string;
+  excludeSessionToken?: string; // Internal only: revalidate the caller's own hold.
   serviceIds: string[];
   professionalId?: string | 'any';
   dateStr: string;        // "YYYY-MM-DD"
@@ -96,12 +97,15 @@ export async function getDayAvailability(options: AvailabilityQueryOptions): Pro
     throw new Error('Parâmetros obrigatórios ausentes para cálculo de disponibilidade.');
   }
 
+  if (!isValidDateString(dateStr) || !Number.isInteger(slotIntervalMinutes) || slotIntervalMinutes < 1 || slotIntervalMinutes > 1440) {
+    throw new Error('Data ou intervalo de horários inválido.');
+  }
   // 1. Obter tenant e suas configurações de política de agendamento
   const tenant = await prisma.tenant.findUnique({
     where: { id: tenantId },
   });
 
-  if (!tenant) {
+  if (!tenant || !tenant.isActive) {
     throw new Error(`Tenant não encontrado com ID: ${tenantId}`);
   }
 
@@ -127,10 +131,11 @@ export async function getDayAvailability(options: AvailabilityQueryOptions): Pro
     0
   );
 
+  if (totalDurationMinutes <= 0) throw new Error('Duração dos serviços inválida.');
   // 3. Determinar o dia da semana
   const [year, month, day] = dateStr.split('-').map(Number);
-  const localTargetDate = new Date(year, month - 1, day);
-  const dayOfWeek = localTargetDate.getDay(); // 0 = Domingo, 1 = Segunda...
+  const localTargetDate = new Date(Date.UTC(year, month - 1, day));
+  const dayOfWeek = localTargetDate.getUTCDay(); // 0 = Domingo, 1 = Segunda...
 
   // Validação de janela máxima de antecedência
   const now = new Date();
@@ -159,11 +164,7 @@ export async function getDayAvailability(options: AvailabilityQueryOptions): Pro
         id: professionalId,
         tenantId,
         status: 'active',
-        services: {
-          some: {
-            serviceId: { in: serviceIds },
-          },
-        },
+        AND: serviceIds.map((serviceId) => ({ services: { some: { serviceId, tenantId } } })),
       },
       select: { id: true, name: true },
     });
@@ -186,11 +187,7 @@ export async function getDayAvailability(options: AvailabilityQueryOptions): Pro
       where: {
         tenantId,
         status: 'active',
-        services: {
-          some: {
-            serviceId: { in: serviceIds },
-          },
-        },
+        AND: serviceIds.map((serviceId) => ({ services: { some: { serviceId, tenantId } } })),
       },
       select: { id: true, name: true },
     });
@@ -264,12 +261,15 @@ export async function getDayAvailability(options: AvailabilityQueryOptions): Pro
   // Filtrar holds expirados
   const activeAppointments = existingAppointments.filter((app) => {
     if (app.status === AppointmentStatus.held) {
-      if (app.holds && app.holds.expiresAt <= now) {
-        return false; // Hold expirado, não bloqueia
-      }
+      return !!app.holds && app.holds.expiresAt > now &&
+        app.holds.sessionToken !== options.excludeSessionToken;
     }
     return true;
   });
+
+  const ownHolds = options.excludeSessionToken ? existingAppointments.filter(app =>
+    app.status === AppointmentStatus.held && !!app.holds && app.holds.sessionToken === options.excludeSessionToken && app.holds.expiresAt > now
+  ) : [];
 
   // 8. Gerar e testar slots por profissional
   const slotsMap = new Map<string, AvailabilitySlot>();
@@ -306,7 +306,9 @@ export async function getDayAvailability(options: AvailabilityQueryOptions): Pro
       const slotEndUtc = new Date(slotStartUtc.getTime() + totalDurationMinutes * 60 * 1000);
 
       // Regra de antecedência mínima
-      if (slotStartUtc < minAllowedStartTime) {
+      const alreadyHeld = ownHolds.some(app => app.professionalId === prof.id &&
+        app.startAt.getTime() === slotStartUtc.getTime() && app.endAt.getTime() === slotEndUtc.getTime());
+      if (slotStartUtc < minAllowedStartTime && !alreadyHeld) {
         continue;
       }
 
@@ -374,11 +376,11 @@ export async function getNextAvailableSuggestions(
   const suggestions: Array<{ date: string; firstSlotTime: string; professionalName: string }> = [];
 
   const [year, month, day] = options.dateStr.split('-').map(Number);
-  const baseDate = new Date(year, month - 1, day);
+  const baseDate = new Date(Date.UTC(year, month - 1, day));
 
   for (let i = 1; i <= maxSearchDays; i++) {
     const nextDate = new Date(baseDate);
-    nextDate.setDate(nextDate.getDate() + i);
+    nextDate.setUTCDate(nextDate.getUTCDate() + i);
 
     const nextDateStr = nextDate.toISOString().split('T')[0];
     const dayResult = await getDayAvailability({
@@ -401,4 +403,10 @@ export async function getNextAvailableSuggestions(
   }
 
   return suggestions;
+}
+
+export function isValidDateString(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }

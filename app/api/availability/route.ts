@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDayAvailability, getNextAvailableSuggestions } from '@/lib/availability';
-import { prisma } from '@/lib/db';
+import { getDayAvailability, getNextAvailableSuggestions, isValidDateString } from '@/lib/availability';
+import { resolveBookingTenant } from '@/lib/booking-tenant';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,15 +14,7 @@ export async function GET(request: NextRequest) {
     const professionalId = searchParams.get('professionalId') || 'any';
     const dateStr = searchParams.get('date');
 
-    if (!tenantId && tenantSlug) {
-      const tenant = await prisma.tenant.findUnique({
-        where: { slug: tenantSlug },
-        select: { id: true },
-      });
-      if (tenant) {
-        tenantId = tenant.id;
-      }
-    }
+    tenantId = await resolveBookingTenant(request.headers, { tenantId, tenantSlug });
 
     if (!tenantId) {
       return NextResponse.json(
@@ -38,14 +30,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    if (!dateStr || !isValidDateString(dateStr)) {
       return NextResponse.json(
         { error: 'Data no formato YYYY-MM-DD é obrigatória.' },
         { status: 400 }
       );
     }
 
-    const serviceIds = serviceIdsParam.split(',').map((s) => s.trim()).filter(Boolean);
+    const serviceIds = [...new Set(serviceIdsParam.split(',').map((s) => s.trim()).filter(Boolean))];
+    if (!serviceIds.length || serviceIds.length > 10) return NextResponse.json({ error: 'Selecione de 1 a 10 serviços.' }, { status: 400 });
 
     const queryOptions = {
       tenantId,
@@ -69,7 +62,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Erro na API de disponibilidade:', error);
     return NextResponse.json(
-      { error: error.message || 'Erro ao calcular disponibilidade.' },
+      { error: 'Não foi possível consultar a agenda. Tente novamente.' },
       { status: 500 }
     );
   }

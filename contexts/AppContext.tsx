@@ -20,13 +20,14 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [role, setRoleState] = useState<Role>('admin');
-  const [salon, setSalonState] = useState<Salon>(DataStore.getSalon());
+  const [role, setRoleState] = useState<Role>('client');
+  const [salon, setSalonState] = useState<Salon>(() => DataStore.getSalon());
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
+    setSalonState(DataStore.getSalon());
     const savedRole = DataStore.getUserRole();
     setRoleState(savedRole);
   }, []);

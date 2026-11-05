@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   hashPassword,
   verifyPassword,
@@ -10,6 +10,15 @@ import {
 } from '@/lib/auth';
 
 describe('Auth & RBAC Security Tests', () => {
+  beforeEach(() => vi.stubEnv('AUTH_SECRET', 'test-only-secret-at-least-32-characters-long'));
+  afterEach(() => vi.unstubAllEnvs());
+  it('deve recusar tokens de magic link como sessão de usuário', () => {
+    expect(verifySessionToken(generateClientMagicLinkToken('cliente@example.com', 'tenant-a'))).toBeNull();
+  });
+  it('deve exigir segredo configurado para assinar sessões', () => {
+    vi.stubEnv('AUTH_SECRET', '');
+    expect(() => signSessionToken({ userId: '1', email: 'a@example.com' })).toThrow(/AUTH_SECRET/);
+  });
   it('deve realizar hash e verificação segura de senhas com bcrypt', async () => {
     const rawPassword = 'SenhaForteKonnexy#2026';
     const hash = await hashPassword(rawPassword);
