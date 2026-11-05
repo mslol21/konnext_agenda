@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { DataStore } from '@/lib/store';
 import { Service } from '@/types';
 import { formatCurrency } from '@/lib/utils';
+import { AdminNav } from '@/components/admin/AdminNav';
 import { Scissors, Plus, Edit, Trash2, Clock, CheckCircle2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -44,7 +45,7 @@ export default function ServicesAdminPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este serviço?')) {
+    if (confirm('Tem certeza que deseja excluir este procedimento?')) {
       const updated = DataStore.deleteService(id);
       setServices(updated);
       toast.success('Serviço removido com sucesso.');
@@ -66,7 +67,7 @@ export default function ServicesAdminPage() {
       price: parseFloat(price) || 0,
       duration_minutes: parseInt(duration, 10) || 30,
       image_url: imageUrl,
-      color: '#C08497',
+      color: '#22d3ee',
       is_active: true,
     };
 
@@ -77,181 +78,185 @@ export default function ServicesAdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-10 px-4 sm:px-6 lg:px-8 space-y-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen pb-16">
+      <AdminNav />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-rose-100 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        {/* Header */}
+        <div className="konnexy-card rounded-2xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-              <Scissors className="w-6 h-6 text-[#C08497]" /> Gestão de Serviços
+            <h1 className="text-2xl font-black text-white flex items-center gap-2">
+              <Scissors className="w-6 h-6 text-cyan-400" /> Gestão de Serviços & Cardápio
             </h1>
-            <p className="text-xs text-slate-500">
-              Cadastre e edite procedimentos, preços, tempo de execução e imagens.
+            <p className="text-xs text-slate-400">
+              Cadastre e gerencie procedimentos, tempo de execução na grade e valores.
             </p>
           </div>
 
           <button
             onClick={handleOpenCreateModal}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#C08497] to-[#8B5E83] text-white font-bold text-xs shadow-md hover:scale-105 transition-all flex items-center gap-2"
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold text-xs shadow-md shadow-cyan-500/20 hover:opacity-95 transition-all flex items-center gap-2"
           >
             <Plus className="w-4 h-4" /> Cadastrar Novo Serviço
           </button>
         </div>
 
-        {/* Services Table */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 text-[11px] font-bold uppercase border-b border-slate-100 dark:border-slate-800">
-                  <th className="py-3.5 px-6">Imagem</th>
-                  <th className="py-3.5 px-6">Nome do Serviço</th>
-                  <th className="py-3.5 px-6">Categoria</th>
-                  <th className="py-3.5 px-6">Duração</th>
-                  <th className="py-3.5 px-6">Preço</th>
-                  <th className="py-3.5 px-6 text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
-                {services.map((srv) => (
-                  <tr key={srv.id} className="hover:bg-rose-50/30 dark:hover:bg-slate-800/40">
-                    <td className="py-3.5 px-6">
-                      <img src={srv.image_url} alt={srv.name} className="w-12 h-12 rounded-xl object-cover" />
-                    </td>
+        {/* Services Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {services.map((srv) => (
+            <div key={srv.id} className="konnexy-card rounded-2xl overflow-hidden flex flex-col justify-between group">
+              <div>
+                <div className="relative h-44 overflow-hidden">
+                  <img src={srv.image_url} alt={srv.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#080b14] via-[#080b14]/30 to-transparent" />
+                  <span className="absolute top-3 left-3 px-2 py-0.5 rounded-lg bg-[#050711]/80 backdrop-blur-md border border-white/10 text-cyan-300 text-[10px] font-semibold">
+                    {srv.category_name}
+                  </span>
+                </div>
 
-                    <td className="py-3.5 px-6 font-bold text-slate-800 dark:text-white">
-                      {srv.name}
-                      <p className="text-[11px] text-slate-400 font-normal line-clamp-1">{srv.description}</p>
-                    </td>
+                <div className="p-5 space-y-2">
+                  <h3 className="font-bold text-white text-base group-hover:text-cyan-300 transition-colors">{srv.name}</h3>
+                  <p className="text-xs text-slate-400 line-clamp-2">{srv.description}</p>
+                </div>
+              </div>
 
-                    <td className="py-3.5 px-6 text-slate-600 dark:text-slate-300 font-semibold">
-                      {srv.category_name}
-                    </td>
+              <div className="p-5 pt-0">
+                <div className="flex justify-between items-center border-t border-white/5 pt-3 pb-3">
+                  <span className="text-xs text-slate-400 flex items-center gap-1 font-medium">
+                    <Clock className="w-3.5 h-3.5 text-cyan-400" /> {srv.duration_minutes} min
+                  </span>
+                  <span className="text-base font-extrabold text-cyan-400">{formatCurrency(srv.price)}</span>
+                </div>
 
-                    <td className="py-3.5 px-6 text-slate-600 dark:text-slate-300 font-medium">
-                      <Clock className="w-3.5 h-3.5 inline text-[#C08497] mr-1" />
-                      {srv.duration_minutes} min
-                    </td>
-
-                    <td className="py-3.5 px-6 font-extrabold text-[#8B5E83] dark:text-rose-300">
-                      {formatCurrency(srv.price)}
-                    </td>
-
-                    <td className="py-3.5 px-6 text-right space-x-2">
-                      <button
-                        onClick={() => handleOpenEditModal(srv)}
-                        className="p-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(srv.id)}
-                        className="p-2 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                <div className="flex gap-2 pt-2 border-t border-white/5">
+                  <button
+                    onClick={() => handleOpenEditModal(srv)}
+                    className="flex-1 py-2 rounded-xl bg-[#080b17] hover:bg-slate-800 text-slate-200 border border-white/10 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
+                  >
+                    <Edit className="w-3.5 h-3.5 text-cyan-400" /> Editar
+                  </button>
+                  <button
+                    onClick={() => handleDelete(srv.id)}
+                    className="p-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/40 border border-rose-500/30 text-rose-300 text-xs font-semibold transition-all"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
       </div>
 
-      {/* Modal CRUD */}
+      {/* CREATE / EDIT MODAL */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <form onSubmit={handleSaveService} className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-full max-w-lg space-y-4 border border-rose-100 dark:border-slate-800 shadow-2xl">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <h3 className="font-bold text-slate-800 dark:text-white text-base">
-                {editingService ? 'Editar Serviço' : 'Cadastrar Novo Serviço'}
+        <div className="fixed inset-0 z-50 bg-[#03050d]/80 backdrop-blur-md flex items-center justify-center p-4">
+          <form onSubmit={handleSaveService} className="bg-[#080b17] rounded-2xl p-6 w-full max-w-md space-y-4 border border-white/10 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <h3 className="font-bold text-white text-base flex items-center gap-2">
+                <Scissors className="w-4 h-4 text-cyan-400" />
+                {editingService ? 'Editar Procedimento' : 'Novo Procedimento'}
               </h3>
-              <button type="button" onClick={() => setModalOpen(false)}><X className="w-5 h-5 text-slate-400" /></button>
+              <button type="button" onClick={() => setModalOpen(false)}>
+                <X className="w-5 h-5 text-slate-400 hover:text-white" />
+              </button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300">Nome do Serviço *</label>
+                <label className="font-semibold text-slate-300 block mb-1">Nome do Procedimento *</label>
                 <input
                   type="text"
                   required
+                  placeholder="Ex: Corte e Visagismo"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#0d1122] text-white focus:border-cyan-400 outline-none"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-slate-700 dark:text-slate-300">Categoria</label>
-                  <select
-                    value={categoryId}
-                    onChange={(e) => setCategoryId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
-                  >
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="font-bold text-slate-700 dark:text-slate-300">Preço (R$) *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
-                  />
-                </div>
+              <div>
+                <label className="font-semibold text-slate-300 block mb-1">Categoria</label>
+                <select
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#0d1122] text-white focus:border-cyan-400 outline-none cursor-pointer"
+                >
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id} className="bg-[#080b17] text-white">
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-slate-300">Duração (minutos)</label>
+                  <label className="font-semibold text-slate-300 block mb-1">Preço (R$) *</label>
                   <input
                     type="number"
                     required
-                    value={duration}
-                    onChange={(e) => setDuration(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#0d1122] text-white font-bold focus:border-cyan-400 outline-none"
                   />
                 </div>
-
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-slate-300">URL da Imagem</label>
+                  <label className="font-semibold text-slate-300 block mb-1">Duração (min) *</label>
                   <input
-                    type="url"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+                    type="number"
+                    required
+                    step="15"
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#0d1122] text-white font-bold focus:border-cyan-400 outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300">Descrição Detalhada</label>
+                <label className="font-semibold text-slate-300 block mb-1">URL da Fotografia</label>
+                <input
+                  type="url"
+                  required
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#0d1122] text-white focus:border-cyan-400 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="font-semibold text-slate-300 block mb-1">Descrição</label>
                 <textarea
-                  rows={2}
+                  rows={3}
+                  placeholder="Explique os benefícios e produtos utilizados..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#0d1122] text-white focus:border-cyan-400 outline-none"
                 />
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2">
-              <button type="button" onClick={() => setModalOpen(false)} className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-bold">Cancelar</button>
-              <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#C08497] text-white text-xs font-bold">Salvar Serviço</button>
+            <div className="flex gap-2 pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="flex-1 py-2.5 rounded-xl bg-[#0d1122] text-slate-300 text-xs font-semibold hover:bg-slate-800"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 text-xs font-bold shadow-md shadow-cyan-500/20"
+              >
+                Salvar Procedimento
+              </button>
             </div>
           </form>
         </div>
       )}
-
     </div>
   );
 }

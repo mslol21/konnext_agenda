@@ -102,68 +102,70 @@ export function BookingWizardModal() {
       return;
     }
 
-    const duration = selectedService.duration_minutes || 60;
-    const dateObj = new Date(selectedDate + 'T00:00:00');
-    const dayOfWeek = dateObj.getDay();
-
-    // Check if professional works on this day
-    if (!selectedProfessional.working_days.includes(dayOfWeek)) {
+    const dayOfWeek = new Date(selectedDate + 'T12:00:00').getDay();
+    if (dayOfWeek === 0) {
       setAvailableTimeSlots([]);
       return;
     }
 
+    const appointments = DataStore.getAppointments().filter(
+      (a) => a.professional_id === selectedProfessional.id && a.date === selectedDate && a.status !== 'cancelled'
+    );
+
+    const proStart = selectedProfessional.working_hours.start;
+    const proEnd = selectedProfessional.working_hours.end;
+    const [startH, startM] = proStart.split(':').map(Number);
+    const [endH, endM] = proEnd.split(':').map(Number);
+
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    const stepMin = 30;
+    const duration = selectedService.duration_minutes;
+
     const slots: string[] = [];
-    const startHour = parseInt(selectedProfessional.working_hours.start.split(':')[0], 10);
-    const endHour = parseInt(selectedProfessional.working_hours.end.split(':')[0], 10);
-
-    for (let hour = startHour; hour < endHour; hour++) {
-      for (let min of ['00', '30']) {
-        const slotStart = `${hour.toString().padStart(2, '0')}:${min}`;
-        
-        // Calculate slot end time
-        const totalMinutes = hour * 60 + parseInt(min, 10) + duration;
-        const endH = Math.floor(totalMinutes / 60);
-        const endM = totalMinutes % 60;
-        const slotEnd = `${endH.toString().padStart(2, '0')}:${endM.toString().padStart(2, '0')}`;
-
-        if (endH > endHour) continue; // exceed working hours
-
-        // Check for break time overlap
-        if (selectedProfessional.break_hours) {
-          const bStart = selectedProfessional.break_hours.start;
-          const bEnd = selectedProfessional.break_hours.end;
-          if ((slotStart >= bStart && slotStart < bEnd) || (slotEnd > bStart && slotEnd <= bEnd)) {
-            continue;
-          }
+    for (let time = startMinutes; time + duration <= endMinutes; time += stepMin) {
+      if (selectedProfessional.break_hours) {
+        const [bStartH, bStartM] = selectedProfessional.break_hours.start.split(':').map(Number);
+        const [bEndH, bEndM] = selectedProfessional.break_hours.end.split(':').map(Number);
+        const bStart = bStartH * 60 + bStartM;
+        const bEnd = bEndH * 60 + bEndM;
+        if (time < bEnd && time + duration > bStart) {
+          continue;
         }
+      }
 
-        // Check for double booking conflict in DataStore
-        const isFree = DataStore.checkSlotAvailable(selectedProfessional.id, selectedDate, slotStart, slotEnd);
-        if (isFree) {
-          slots.push(slotStart);
-        }
+      const slotStartH = Math.floor(time / 60).toString().padStart(2, '0');
+      const slotStartM = (time % 60).toString().padStart(2, '0');
+      const slotTimeStr = `${slotStartH}:${slotStartM}`;
+      const slotEndTotal = time + duration;
+      const slotEndH = Math.floor(slotEndTotal / 60).toString().padStart(2, '0');
+      const slotEndM = (slotEndTotal % 60).toString().padStart(2, '0');
+      const slotEndTimeStr = `${slotEndH}:${slotEndM}`;
+
+      const hasConflict = appointments.some((apt) => {
+        return slotTimeStr < apt.end_time && slotEndTimeStr > apt.start_time;
+      });
+
+      if (!hasConflict) {
+        slots.push(slotTimeStr);
       }
     }
 
     setAvailableTimeSlots(slots);
-  }, [selectedService, selectedProfessional, selectedDate]);
+  }, [selectedService, selectedDate, selectedProfessional]);
 
-  if (!bookingModalOpen) return null;
-
-  // Filtered Services
-  const filteredServices = services.filter(s => {
+  // Filter Services
+  const filteredServices = services.filter((s) => {
     const matchesCat = selectedCategory === 'all' || s.category_id === selectedCategory;
-    const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          s.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCat && matchesSearch;
+    const matchesQuery = s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         s.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCat && matchesQuery;
   });
 
-  // Filter Pros that can perform the selected service
-  const filteredProfessionals = selectedService 
-    ? professionals.filter(p => p.services.includes(selectedService.id) || p.services.length === 0)
-    : professionals;
+  // Filter Professionals
+  const filteredProfessionals = professionals;
 
-  // Validate & Apply Coupon
+  // Apply Coupon
   const handleApplyCoupon = () => {
     if (!couponCode || !selectedService) return;
     const res = DataStore.validateCoupon(couponCode, selectedService.price);
@@ -207,7 +209,7 @@ export function BookingWizardModal() {
       service_name: selectedService.name,
       service_price: selectedService.price,
       service_duration: selectedService.duration_minutes,
-      service_color: selectedService.color,
+      service_color: '#22d3ee',
       date: selectedDate,
       start_time: selectedTime,
       end_time: endTimeStr,
@@ -231,80 +233,83 @@ export function BookingWizardModal() {
     }
   };
 
+  if (!bookingModalOpen) return null;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-rose-100 dark:border-slate-800 w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#03050d]/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="bg-[#080b17] rounded-2xl shadow-2xl border border-white/10 w-full max-w-3xl overflow-hidden flex flex-col max-h-[92vh]">
         
         {/* Header Bar */}
-        <div className="bg-gradient-to-r from-[#F8F5F2] to-white dark:from-slate-800 dark:to-slate-900 px-6 py-4 border-b border-rose-100 dark:border-slate-800 flex items-center justify-between">
+        <div className="bg-[#0b1022] px-5 py-4 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#C08497]/15 text-[#C08497] flex items-center justify-center font-bold">
-              {step < 6 ? `${step}/5` : <Check className="w-5 h-5" />}
+            <div className="w-9 h-9 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 flex items-center justify-center font-bold text-xs">
+              {step < 6 ? `${step}/5` : <Check className="w-4 h-4" />}
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-800 dark:text-white">
-                {step === 1 && '1. Escolha o Serviço'}
-                {step === 2 && '2. Escolha o Profissional'}
-                {step === 3 && '3. Escolha a Data'}
-                {step === 4 && '4. Escolha o Horário'}
+              <h2 className="text-base font-bold text-white">
+                {step === 1 && '1. Selecione o Procedimento'}
+                {step === 2 && '2. Selecione o Profissional'}
+                {step === 3 && '3. Selecione a Data'}
+                {step === 4 && '4. Selecione o Horário'}
                 {step === 5 && '5. Seus Dados & Confirmação'}
                 {step === 6 && '✨ Agendamento Confirmado!'}
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                {step === 1 && 'Selecione o procedimento desejado'}
-                {step === 2 && 'Escolha quem cuidará da sua beleza'}
-                {step === 3 && 'Selecione o dia ideal'}
-                {step === 4 && 'Horários livres atualizados em tempo real'}
-                {step === 5 && 'Insira suas informações de contato'}
-                {step === 6 && 'Tudo pronto! Te esperamos no salão.'}
+              <p className="text-xs text-slate-400">
+                {step === 1 && 'Escolha o serviço desejado com duração e valor transparentes'}
+                {step === 2 && 'Selecione quem cuidará do seu atendimento'}
+                {step === 3 && 'Selecione o melhor dia no calendário'}
+                {step === 4 && 'Grade de horários sincronizada em tempo real'}
+                {step === 5 && 'Preencha seus dados para receber o comprovante'}
+                {step === 6 && 'Sua vaga está garantida no sistema!'}
               </p>
             </div>
           </div>
 
           <button
             onClick={() => setBookingModalOpen(false)}
-            className="p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            aria-label="Fechar"
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5">
+        <div className="w-full bg-[#050711] h-1">
           <div 
-            className="bg-gradient-to-r from-[#C08497] to-[#8B5E83] h-full transition-all duration-300"
+            className="bg-gradient-to-r from-cyan-400 via-blue-500 to-violet-500 h-full transition-all duration-300"
             style={{ width: `${(step / 6) * 100}%` }}
           />
         </div>
 
         {/* Wizard Body Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
           
           {/* STEP 1: SELECT SERVICE */}
           {step === 1 && (
             <div className="space-y-4">
               {/* Category Filter Pills */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-2">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
                 <button
                   onClick={() => setSelectedCategory('all')}
                   className={cn(
-                    "px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all",
+                    "px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all",
                     selectedCategory === 'all'
-                      ? "bg-[#C08497] text-white shadow-md shadow-rose-200"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
+                      ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold shadow-sm shadow-cyan-500/20"
+                      : "bg-[#0d1122] text-slate-400 hover:text-white border border-white/5"
                   )}
                 >
-                  Todos os Serviços
+                  Todos
                 </button>
                 {categories.map(cat => (
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
                     className={cn(
-                      "px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all",
+                      "px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all",
                       selectedCategory === cat.id
-                        ? "bg-[#C08497] text-white shadow-md shadow-rose-200"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
+                        ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold shadow-sm shadow-cyan-500/20"
+                        : "bg-[#0d1122] text-slate-400 hover:text-white border border-white/5"
                     )}
                   >
                     {cat.name}
@@ -313,7 +318,7 @@ export function BookingWizardModal() {
               </div>
 
               {/* Service Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                 {filteredServices.map(srv => {
                   const isSelected = selectedService?.id === srv.id;
                   return (
@@ -321,40 +326,36 @@ export function BookingWizardModal() {
                       key={srv.id}
                       onClick={() => setSelectedService(srv)}
                       className={cn(
-                        "p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between group",
+                        "p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between group",
                         isSelected
-                          ? "border-[#C08497] bg-rose-50/50 dark:bg-slate-800/90 ring-2 ring-[#C08497]/30 shadow-md"
-                          : "border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-rose-200 hover:shadow-md"
+                          ? "border-cyan-400 bg-cyan-950/20 ring-1 ring-cyan-400/50 shadow-md shadow-cyan-500/10"
+                          : "border-white/5 bg-[#0b1022] hover:border-cyan-500/30"
                       )}
                     >
                       <div className="flex gap-3">
                         <img 
                           src={srv.image_url} 
                           alt={srv.name} 
-                          className="w-16 h-16 rounded-xl object-cover shrink-0 shadow-sm"
+                          className="w-16 h-16 rounded-lg object-cover shrink-0 border border-white/10"
                         />
                         <div className="space-y-1">
-                          <h3 className="font-bold text-slate-800 dark:text-white text-sm group-hover:text-[#C08497] transition-colors">
+                          <h3 className="font-bold text-white text-sm group-hover:text-cyan-300 transition-colors">
                             {srv.name}
                           </h3>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
+                          <p className="text-xs text-slate-400 line-clamp-2">
                             {srv.description}
                           </p>
                         </div>
                       </div>
 
-                      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5 text-[#C08497]" />
-                            {srv.duration_minutes} min
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-base font-extrabold text-[#8B5E83] dark:text-rose-300">
-                            {formatCurrency(srv.price)}
-                          </span>
-                        </div>
+                      <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
+                        <span className="text-xs font-medium text-slate-400 flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5 text-cyan-400" />
+                          {srv.duration_minutes} min
+                        </span>
+                        <span className="text-base font-extrabold text-cyan-400">
+                          {formatCurrency(srv.price)}
+                        </span>
                       </div>
                     </div>
                   );
@@ -366,11 +367,11 @@ export function BookingWizardModal() {
           {/* STEP 2: SELECT PROFESSIONAL */}
           {step === 2 && (
             <div className="space-y-4">
-              <p className="text-xs text-slate-500">
-                Serviço selecionado: <strong className="text-[#8B5E83]">{selectedService?.name}</strong> ({selectedService?.duration_minutes} min - {formatCurrency(selectedService?.price || 0)})
-              </p>
+              <div className="p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/20 text-xs text-slate-300">
+                Procedimento: <strong className="text-cyan-300">{selectedService?.name}</strong> • {selectedService?.duration_minutes} min • {formatCurrency(selectedService?.price || 0)}
+              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 {filteredProfessionals.map(pro => {
                   const isSelected = selectedProfessional?.id === pro.id;
                   return (
@@ -378,22 +379,22 @@ export function BookingWizardModal() {
                       key={pro.id}
                       onClick={() => setSelectedProfessional(pro)}
                       className={cn(
-                        "p-4 rounded-2xl border-2 cursor-pointer transition-all flex items-center gap-4",
+                        "p-4 rounded-xl border cursor-pointer transition-all flex items-center gap-4",
                         isSelected
-                          ? "border-[#C08497] bg-rose-50/60 dark:bg-slate-800 ring-2 ring-[#C08497]/30 shadow-md"
-                          : "border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-rose-200 hover:shadow-md"
+                          ? "border-cyan-400 bg-cyan-950/20 ring-1 ring-cyan-400/50 shadow-md shadow-cyan-500/10"
+                          : "border-white/5 bg-[#0b1022] hover:border-cyan-500/30"
                       )}
                     >
                       <img 
                         src={pro.photo_url} 
                         alt={pro.name} 
-                        className="w-16 h-16 rounded-full object-cover shadow-md border-2 border-white dark:border-slate-700"
+                        className="w-14 h-14 rounded-full object-cover border border-cyan-500/30"
                       />
                       <div>
-                        <h4 className="font-bold text-slate-800 dark:text-white text-sm">
+                        <h4 className="font-bold text-white text-sm">
                           {pro.name}
                         </h4>
-                        <p className="text-xs text-[#8B5E83] dark:text-rose-300 font-medium">
+                        <p className="text-xs text-cyan-300 font-medium">
                           {pro.specialty}
                         </p>
                         <p className="text-[11px] text-slate-400 mt-1">
@@ -410,25 +411,25 @@ export function BookingWizardModal() {
           {/* STEP 3: SELECT DATE */}
           {step === 3 && (
             <div className="space-y-4 max-w-md mx-auto">
-              <label className="block text-sm font-bold text-slate-700 dark:text-slate-200">
-                Selecione a Data para o Atendimento
+              <label className="block text-sm font-bold text-white">
+                Selecione a Data Desejada
               </label>
               <input
                 type="date"
                 min={new Date().toISOString().split('T')[0]}
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-semibold focus:ring-2 focus:ring-[#C08497] outline-none shadow-sm"
+                className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#0d1122] text-white font-semibold focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 outline-none shadow-sm"
               />
 
               {selectedProfessional && (
-                <div className="p-4 rounded-2xl bg-[#F8F5F2] dark:bg-slate-800 text-xs text-slate-600 dark:text-slate-300 space-y-2">
-                  <div className="flex items-center gap-2 font-semibold text-[#8B5E83] dark:text-rose-300">
-                    <CalendarIcon className="w-4 h-4" />
+                <div className="p-4 rounded-xl bg-[#0d1122] border border-white/5 text-xs text-slate-300 space-y-2">
+                  <div className="flex items-center gap-2 font-semibold text-cyan-300">
+                    <CalendarIcon className="w-4 h-4 text-cyan-400" />
                     Horário de Atendimento de {selectedProfessional.name}:
                   </div>
-                  <p>Segunda a Sábado: {selectedProfessional.working_hours.start} às {selectedProfessional.working_hours.end}</p>
-                  <p className="text-slate-400">Intervalo de almoço: {selectedProfessional.break_hours?.start} - {selectedProfessional.break_hours?.end}</p>
+                  <p className="text-slate-400">Segunda a Sábado: {selectedProfessional.working_hours.start} às {selectedProfessional.working_hours.end}</p>
+                  <p className="text-slate-500">Intervalo de almoço: {selectedProfessional.break_hours?.start} - {selectedProfessional.break_hours?.end}</p>
                 </div>
               )}
             </div>
@@ -437,23 +438,23 @@ export function BookingWizardModal() {
           {/* STEP 4: SELECT TIME SLOT */}
           {step === 4 && (
             <div className="space-y-4">
-              <div className="text-xs text-slate-500 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
-                <span>Data: <strong className="text-slate-800 dark:text-white">{selectedDate}</strong></span>
-                <span>Profissional: <strong className="text-[#8B5E83]">{selectedProfessional?.name}</strong></span>
+              <div className="text-xs text-slate-400 flex justify-between items-center bg-[#0d1122] p-3 rounded-xl border border-white/5">
+                <span>Data: <strong className="text-white">{selectedDate}</strong></span>
+                <span>Profissional: <strong className="text-cyan-300">{selectedProfessional?.name}</strong></span>
               </div>
 
               {availableTimeSlots.length === 0 ? (
-                <div className="text-center py-10 space-y-3 bg-rose-50/40 dark:bg-slate-800/40 rounded-2xl border border-dashed border-rose-200">
-                  <AlertCircle className="w-10 h-10 text-[#C08497] mx-auto" />
-                  <h4 className="font-bold text-slate-800 dark:text-white text-sm">
+                <div className="text-center py-10 space-y-3 bg-[#0d1122] rounded-xl border border-dashed border-white/10">
+                  <AlertCircle className="w-8 h-8 text-amber-400 mx-auto" />
+                  <h4 className="font-bold text-white text-sm">
                     Nenhum horário livre para este dia
                   </h4>
-                  <p className="text-xs text-slate-500 max-w-xs mx-auto">
-                    Todos os horários de {selectedProfessional?.name} para {selectedDate} foram preenchidos ou o salão estará fechado. Por favor, volte e escolha outra data.
+                  <p className="text-xs text-slate-400 max-w-xs mx-auto">
+                    Os horários de {selectedProfessional?.name} para {selectedDate} foram preenchidos ou o estabelecimento estará fechado. Por favor, escolha outra data.
                   </p>
                   <button
                     onClick={() => setStep(3)}
-                    className="px-4 py-2 rounded-xl bg-[#C08497] text-white text-xs font-semibold"
+                    className="px-4 py-2 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 text-xs font-semibold hover:bg-cyan-900/50"
                   >
                     Escolher Outra Data
                   </button>
@@ -461,19 +462,19 @@ export function BookingWizardModal() {
               ) : (
                 <div className="space-y-3">
                   {/* Smart Recommendation Highlight */}
-                  <div className="p-3 rounded-2xl bg-gradient-to-r from-[#C08497]/15 to-[#8B5E83]/15 border border-[#C08497]/30 flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#8B5E83] dark:text-rose-300 flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-[#C08497]" /> Sugestão Inteligente de Melhor Horário:
+                  <div className="p-3 rounded-xl bg-cyan-950/40 border border-cyan-500/30 flex items-center justify-between">
+                    <span className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-cyan-400" /> Horário mais próximo recomendado:
                     </span>
                     <button
                       onClick={() => setSelectedTime(availableTimeSlots[0])}
-                      className="px-3 py-1 rounded-xl bg-[#C08497] text-white text-xs font-bold shadow-sm hover:bg-[#b37588]"
+                      className="px-3 py-1 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 text-xs font-bold shadow-sm"
                     >
                       {availableTimeSlots[0]} (Recomendado)
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5">
                     {availableTimeSlots.map((time, idx) => {
                       const isSelected = selectedTime === time;
                       const isRecommended = idx === 0;
@@ -482,18 +483,18 @@ export function BookingWizardModal() {
                           key={time}
                           onClick={() => setSelectedTime(time)}
                           className={cn(
-                            "py-3 px-2 rounded-2xl border text-sm font-bold transition-all flex flex-col items-center justify-center gap-1 relative",
+                            "py-3 px-2 rounded-xl border text-xs font-bold transition-all flex flex-col items-center justify-center gap-1 relative min-h-[44px]",
                             isSelected
-                              ? "border-[#C08497] bg-gradient-to-br from-[#C08497] to-[#8B5E83] text-white shadow-md scale-105"
+                              ? "border-cyan-400 bg-gradient-to-br from-cyan-500 to-blue-600 text-slate-950 shadow-md font-extrabold"
                               : isRecommended
-                              ? "border-[#C08497] bg-rose-50/80 dark:bg-slate-800 text-slate-800 dark:text-white"
-                              : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-rose-300 hover:bg-rose-50/50"
+                              ? "border-cyan-500/40 bg-cyan-950/30 text-cyan-200"
+                              : "border-white/5 bg-[#0d1122] text-slate-300 hover:border-cyan-500/30 hover:text-white"
                           )}
                         >
                           <Clock className="w-3.5 h-3.5" />
-                          {time}
+                          <span>{time}</span>
                           {isRecommended && !isSelected && (
-                            <span className="text-[9px] text-[#8B5E83] dark:text-rose-300 font-extrabold">Recomendado</span>
+                            <span className="text-[9px] text-cyan-400 font-extrabold">Top</span>
                           )}
                         </button>
                       );
@@ -508,9 +509,9 @@ export function BookingWizardModal() {
           {step === 5 && (
             <div className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1">
-                    <User className="w-3.5 h-3.5 text-[#C08497]" /> Seu Nome Completo *
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
+                    <User className="w-3.5 h-3.5 text-cyan-400" /> Seu Nome Completo *
                   </label>
                   <input
                     type="text"
@@ -518,13 +519,13 @@ export function BookingWizardModal() {
                     placeholder="Ex: Amanda Silva"
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 text-sm font-medium focus:ring-2 focus:ring-[#C08497] outline-none shadow-sm"
+                    className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0d1122] text-white placeholder:text-slate-500 text-sm font-medium focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 outline-none shadow-sm min-h-[44px]"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1">
-                    <Phone className="w-3.5 h-3.5 text-[#C08497]" /> Celular / WhatsApp *
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
+                    <Phone className="w-3.5 h-3.5 text-cyan-400" /> Celular / WhatsApp *
                   </label>
                   <input
                     type="tel"
@@ -532,13 +533,13 @@ export function BookingWizardModal() {
                     placeholder="(11) 99999-9999"
                     value={clientPhone}
                     onChange={(e) => setClientPhone(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 text-sm font-medium focus:ring-2 focus:ring-[#C08497] outline-none shadow-sm"
+                    className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0d1122] text-white placeholder:text-slate-500 text-sm font-medium focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 outline-none shadow-sm min-h-[44px]"
                   />
                 </div>
 
-                <div className="space-y-1 md:col-span-2">
-                  <label className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1">
-                    <Mail className="w-3.5 h-3.5 text-[#C08497]" /> E-mail para confirmação *
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
+                    <Mail className="w-3.5 h-3.5 text-cyan-400" /> E-mail para confirmação *
                   </label>
                   <input
                     type="email"
@@ -546,28 +547,28 @@ export function BookingWizardModal() {
                     placeholder="amanda@exemplo.com.br"
                     value={clientEmail}
                     onChange={(e) => setClientEmail(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 text-sm font-medium focus:ring-2 focus:ring-[#C08497] outline-none shadow-sm"
+                    className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0d1122] text-white placeholder:text-slate-500 text-sm font-medium focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 outline-none shadow-sm min-h-[44px]"
                   />
                 </div>
 
-                <div className="space-y-1 md:col-span-2">
-                  <label className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1">
-                    <FileText className="w-3.5 h-3.5 text-[#C08497]" /> Observações (Opcional)
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
+                    <FileText className="w-3.5 h-3.5 text-cyan-400" /> Observações (Opcional)
                   </label>
                   <textarea
                     rows={2}
-                    placeholder="Ex: Possuo sensibilidade no couro cabeludo ou preferência por café"
+                    placeholder="Ex: Preferência por café ou necessidade específica"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 text-sm font-medium focus:ring-2 focus:ring-[#C08497] outline-none shadow-sm"
+                    className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0d1122] text-white placeholder:text-slate-500 text-sm font-medium focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 outline-none shadow-sm"
                   />
                 </div>
               </div>
 
               {/* Coupon Section */}
-              <div className="p-4 rounded-2xl bg-[#F8F5F2] dark:bg-slate-800 space-y-3 border border-rose-100 dark:border-slate-700">
-                <label className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1">
-                  <Tag className="w-3.5 h-3.5 text-[#C08497]" /> Possui Cupom de Desconto? (Tente: PRIMEIRA10 ou VIP50)
+              <div className="p-4 rounded-xl bg-[#0d1122] space-y-2.5 border border-white/5">
+                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
+                  <Tag className="w-3.5 h-3.5 text-cyan-400" /> Possui Cupom de Desconto? (Ex: PRIMEIRA10 ou VIP50)
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -575,12 +576,12 @@ export function BookingWizardModal() {
                     placeholder="Código do Cupom"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 text-sm uppercase font-mono font-bold"
+                    className="flex-1 px-4 py-2 rounded-xl border border-white/10 bg-[#080b17] text-white placeholder:text-slate-500 text-sm uppercase font-mono font-bold focus:border-cyan-400 outline-none"
                   />
                   <button
                     type="button"
                     onClick={handleApplyCoupon}
-                    className="px-4 py-2.5 rounded-xl bg-[#8B5E83] text-white text-xs font-bold hover:bg-[#744e6d]"
+                    className="px-4 py-2 rounded-xl bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 text-xs font-bold hover:bg-cyan-900/60"
                   >
                     Aplicar
                   </button>
@@ -588,18 +589,18 @@ export function BookingWizardModal() {
               </div>
 
               {/* Price Calculation Card */}
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-[#C08497]/15 to-[#8B5E83]/15 border border-[#C08497]/40 space-y-2 text-sm">
-                <div className="flex justify-between text-slate-700 dark:text-slate-200 font-medium">
-                  <span>Valor do Serviço ({selectedService?.name}):</span>
-                  <span className="font-bold">{formatCurrency(selectedService?.price || 0)}</span>
+              <div className="p-4 rounded-xl bg-cyan-950/20 border border-cyan-500/30 space-y-2 text-sm">
+                <div className="flex justify-between text-slate-300 font-medium">
+                  <span>Valor do Procedimento ({selectedService?.name}):</span>
+                  <span className="font-bold text-white">{formatCurrency(selectedService?.price || 0)}</span>
                 </div>
                 {discountAmount > 0 && (
-                  <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-bold">
+                  <div className="flex justify-between text-emerald-400 font-bold">
                     <span>Desconto do Cupom ({appliedCoupon?.code}):</span>
                     <span>-{formatCurrency(discountAmount)}</span>
                   </div>
                 )}
-                <div className="pt-2 border-t border-rose-200 dark:border-slate-700 flex justify-between font-extrabold text-base text-[#8B5E83] dark:text-rose-300">
+                <div className="pt-2 border-t border-white/10 flex justify-between font-extrabold text-base text-cyan-300">
                   <span>Total Final:</span>
                   <span>{formatCurrency(Math.max(0, (selectedService?.price || 0) - discountAmount))}</span>
                 </div>
@@ -610,70 +611,71 @@ export function BookingWizardModal() {
           {/* STEP 6: CONFIRMATION SUCCESS */}
           {step === 6 && createdAppointment && (
             <div className="text-center py-6 space-y-6">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-lg animate-bounce">
-                <CheckCircle2 className="w-10 h-10" />
+              <div className="w-14 h-14 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20 animate-bounce">
+                <CheckCircle2 className="w-8 h-8" />
               </div>
 
               <div>
-                <h3 className="text-2xl font-extrabold text-slate-800 dark:text-white">
+                <h3 className="text-2xl font-extrabold text-white">
                   Agendamento Confirmado!
                 </h3>
-                <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-                  Sua vaga foi reservada com sucesso no sistema. Enviamos um e-mail de confirmação para <strong>{createdAppointment.client_email}</strong>.
+                <p className="text-xs text-slate-400 max-w-md mx-auto mt-1">
+                  Sua vaga foi reservada com sucesso no sistema. Enviamos um e-mail com os detalhes para <strong>{createdAppointment.client_email}</strong>.
                 </p>
               </div>
 
               {/* Receipt Visual Ticket */}
-              <div className="max-w-md mx-auto p-6 rounded-3xl bg-gradient-to-br from-[#F8F5F2] to-rose-50 dark:from-slate-800 dark:to-slate-800/90 border border-rose-200 dark:border-slate-700 text-left space-y-3 shadow-md">
-                <div className="flex justify-between items-center border-b border-rose-200/60 pb-3">
-                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">Konnexy Agenda</span>
-                  <span className="text-xs bg-[#C08497] text-white px-2.5 py-0.5 rounded-full font-bold">
+              <div className="max-w-md mx-auto p-5 rounded-2xl bg-[#0d1122] border border-white/10 text-left space-y-3 shadow-lg">
+                <div className="flex justify-between items-center border-b border-white/10 pb-3">
+                  <span className="text-xs font-bold text-white">Konnexy Agenda</span>
+                  <span className="text-xs bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 px-2.5 py-0.5 rounded-full font-bold">
                     #{createdAppointment.id}
                   </span>
                 </div>
 
-                <div className="space-y-1.5 text-sm">
-                  <p><strong className="text-slate-700 dark:text-slate-200">Cliente:</strong> {createdAppointment.client_name}</p>
-                  <p><strong className="text-slate-700 dark:text-slate-200">Serviço:</strong> {createdAppointment.service_name}</p>
-                  <p><strong className="text-slate-700 dark:text-slate-200">Profissional:</strong> {createdAppointment.professional_name}</p>
-                  <p><strong className="text-slate-700 dark:text-slate-200">Data e Hora:</strong> {createdAppointment.date} às {createdAppointment.start_time}</p>
-                  <p><strong className="text-[#8B5E83] dark:text-rose-300">Valor Total:</strong> {formatCurrency(createdAppointment.final_price)}</p>
+                <div className="space-y-1.5 text-xs text-slate-300">
+                  <p><strong className="text-white">Cliente:</strong> {createdAppointment.client_name}</p>
+                  <p><strong className="text-white">Procedimento:</strong> {createdAppointment.service_name}</p>
+                  <p><strong className="text-white">Profissional:</strong> {createdAppointment.professional_name}</p>
+                  <p><strong className="text-white">Data e Hora:</strong> {createdAppointment.date} às {createdAppointment.start_time}</p>
+                  <p><strong className="text-cyan-400">Total:</strong> <span className="text-base font-extrabold text-cyan-400">{formatCurrency(createdAppointment.final_price)}</span></p>
                 </div>
               </div>
 
-              {/* Primary Action: Launch WhatsApp Cloud API Conversation */}
-              <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-center space-y-2">
-                <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
-                  Deseja atuar no atendimento automático via WhatsApp?
+              {/* Primary Action: Launch WhatsApp Cloud API */}
+              <div className="p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-center space-y-2">
+                <p className="text-xs font-semibold text-emerald-300">
+                  Deseja receber confirmação ou tirar dúvidas no WhatsApp?
                 </p>
                 <a
                   href={`https://wa.me/5511987654321?text=${encodeURIComponent(`✨ *Olá! Gostaria de confirmar meu agendamento no Konnexy Agenda!*\n\n📋 *Código*: #${createdAppointment.id}\n👤 *Cliente*: ${createdAppointment.client_name}\n✂️ *Serviço*: ${createdAppointment.service_name}\n🌟 *Profissional*: ${createdAppointment.professional_name}\n🗓️ *Data*: ${createdAppointment.date} às ${createdAppointment.start_time}\n💰 *Valor*: R$ ${createdAppointment.final_price.toFixed(2)}\n\nPodem me confirmar os detalhes? Obrigado!`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md flex items-center justify-center gap-2 transition-all hover:scale-102"
+                  className="w-full py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-slate-950 font-extrabold text-xs shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all min-h-[44px]"
                 >
-                  <MessageSquare className="w-4 h-4" /> 📲 Enviar Agendamento no WhatsApp Oficial
+                  <MessageSquare className="w-4 h-4 fill-slate-950" />
+                  <span>Enviar Agendamento no WhatsApp Oficial</span>
                 </a>
               </div>
 
               {/* Sync Calendar Actions */}
               <div className="space-y-2">
-                <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Adicionar ao seu Calendário:
+                <p className="text-xs font-semibold text-slate-400">
+                  Salvar na sua agenda pessoal:
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
                   <a
                     href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(createdAppointment.service_name + ' - Konnexy Agenda')}&dates=${createdAppointment.date.replace(/-/g, '')}T${createdAppointment.start_time.replace(':', '')}00/${createdAppointment.date.replace(/-/g, '')}T${createdAppointment.end_time.replace(':', '')}00&details=${encodeURIComponent('Profissional: ' + createdAppointment.professional_name)}&location=${encodeURIComponent('Alameda Gabriel Monteiro da Silva, 1420 - Jardins')}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold flex items-center gap-1.5 hover:bg-blue-700 shadow-sm"
+                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm min-h-[40px]"
                   >
                     Google Calendar
                   </a>
 
                   <button
                     onClick={() => downloadICS(createdAppointment)}
-                    className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold flex items-center gap-1.5 hover:bg-slate-800 shadow-sm"
+                    className="px-4 py-2 rounded-xl bg-[#0d1122] hover:bg-slate-800 text-slate-200 border border-white/10 text-xs font-bold flex items-center gap-1.5 shadow-sm min-h-[40px]"
                   >
                     <Download className="w-3.5 h-3.5" />
                     Apple / Outros (.ICS)
@@ -684,7 +686,7 @@ export function BookingWizardModal() {
               <div className="pt-2">
                 <button
                   onClick={() => setBookingModalOpen(false)}
-                  className="px-6 py-2.5 rounded-xl bg-[#C08497] text-white text-xs font-bold hover:bg-[#b37588]"
+                  className="px-6 py-2.5 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 text-xs font-bold hover:bg-cyan-900/50"
                 >
                   Concluir e Fechar
                 </button>
@@ -696,11 +698,11 @@ export function BookingWizardModal() {
 
         {/* Wizard Footer Navigation Buttons */}
         {step < 6 && (
-          <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+          <div className="p-4 bg-[#0b1022] border-t border-white/10 flex justify-between items-center">
             {step > 1 ? (
               <button
                 onClick={() => setStep((prev) => (prev - 1) as any)}
-                className="px-4 py-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold flex items-center gap-1"
+                className="px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 text-xs font-semibold flex items-center gap-1 min-h-[40px]"
               >
                 <ChevronLeft className="w-4 h-4" /> Voltar
               </button>
@@ -711,7 +713,7 @@ export function BookingWizardModal() {
                 <button
                   disabled={!selectedService}
                   onClick={() => setStep(2)}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#C08497] to-[#8B5E83] text-white text-xs font-bold disabled:opacity-50 flex items-center gap-1 shadow-md"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 text-xs font-bold disabled:opacity-50 flex items-center gap-1 shadow-md shadow-cyan-500/20 min-h-[40px]"
                 >
                   Avançar Profissional <ChevronRight className="w-4 h-4" />
                 </button>
@@ -721,7 +723,7 @@ export function BookingWizardModal() {
                 <button
                   disabled={!selectedProfessional}
                   onClick={() => setStep(3)}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#C08497] to-[#8B5E83] text-white text-xs font-bold disabled:opacity-50 flex items-center gap-1 shadow-md"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 text-xs font-bold disabled:opacity-50 flex items-center gap-1 shadow-md shadow-cyan-500/20 min-h-[40px]"
                 >
                   Avançar Data <ChevronRight className="w-4 h-4" />
                 </button>
@@ -731,7 +733,7 @@ export function BookingWizardModal() {
                 <button
                   disabled={!selectedDate}
                   onClick={() => setStep(4)}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#C08497] to-[#8B5E83] text-white text-xs font-bold disabled:opacity-50 flex items-center gap-1 shadow-md"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 text-xs font-bold disabled:opacity-50 flex items-center gap-1 shadow-md shadow-cyan-500/20 min-h-[40px]"
                 >
                   Ver Horários Livres <ChevronRight className="w-4 h-4" />
                 </button>
@@ -741,7 +743,7 @@ export function BookingWizardModal() {
                 <button
                   disabled={!selectedTime}
                   onClick={() => setStep(5)}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#C08497] to-[#8B5E83] text-white text-xs font-bold disabled:opacity-50 flex items-center gap-1 shadow-md"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 text-xs font-bold disabled:opacity-50 flex items-center gap-1 shadow-md shadow-cyan-500/20 min-h-[40px]"
                 >
                   Confirmar Seus Dados <ChevronRight className="w-4 h-4" />
                 </button>
@@ -751,9 +753,9 @@ export function BookingWizardModal() {
                 <button
                   disabled={isSubmitting || !clientName || !clientPhone || !clientEmail}
                   onClick={handleFinalSubmit}
-                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold disabled:opacity-50 flex items-center gap-2 shadow-lg"
+                  className="px-6 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-slate-950 text-xs font-extrabold disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-emerald-500/20 min-h-[44px]"
                 >
-                  {isSubmitting ? 'Reservando...' : 'Finalizar Agendamento'} <Check className="w-4 h-4" />
+                  {isSubmitting ? 'Confirmando...' : 'Finalizar Agendamento'} <Check className="w-4 h-4" />
                 </button>
               )}
             </div>

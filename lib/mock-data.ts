@@ -24,8 +24,8 @@ export const initialSalon: Salon = {
   address: 'Alameda Gabriel Monteiro da Silva, 1420 - Jardins, São Paulo - SP',
   city: 'São Paulo',
   state: 'SP',
-  primary_color: '#C08497',
-  accent_color: '#8B5E83',
+  primary_color: '#22D3EE',
+  accent_color: '#7C3AED',
   working_hours: {
     days: [1, 2, 3, 4, 5, 6], // Mon-Sat
     open: '08:00',
@@ -69,7 +69,7 @@ export const initialServices: Service[] = [
     duration_minutes: 60,
     buffer_minutes: 10,
     image_url: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?w=600&auto=format&fit=crop&q=80',
-    color: '#C08497',
+    color: '#22D3EE',
     is_active: true,
   },
   {
@@ -84,7 +84,7 @@ export const initialServices: Service[] = [
     duration_minutes: 180,
     buffer_minutes: 15,
     image_url: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&auto=format&fit=crop&q=80',
-    color: '#8B5E83',
+    color: '#7C3AED',
     is_active: true,
   },
   {
@@ -99,7 +99,7 @@ export const initialServices: Service[] = [
     duration_minutes: 120,
     buffer_minutes: 15,
     image_url: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=600&auto=format&fit=crop&q=80',
-    color: '#C08497',
+    color: '#22D3EE',
     is_active: true,
   },
   {
@@ -129,7 +129,7 @@ export const initialServices: Service[] = [
     duration_minutes: 75,
     buffer_minutes: 10,
     image_url: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&auto=format&fit=crop&q=80',
-    color: '#8B5E83',
+    color: '#7C3AED',
     is_active: true,
   },
   {
@@ -144,7 +144,7 @@ export const initialServices: Service[] = [
     duration_minutes: 45,
     buffer_minutes: 5,
     image_url: 'https://images.unsplash.com/photo-1583001809873-a1284d5630be?w=600&auto=format&fit=crop&q=80',
-    color: '#C08497',
+    color: '#22D3EE',
     is_active: true,
   },
   {
@@ -174,7 +174,7 @@ export const initialServices: Service[] = [
     duration_minutes: 50,
     buffer_minutes: 10,
     image_url: 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?w=600&auto=format&fit=crop&q=80',
-    color: '#8B5E83',
+    color: '#7C3AED',
     is_active: true,
   }
 ];
@@ -329,7 +329,7 @@ export const initialAppointments: Appointment[] = [
     service_name: 'Corte Feminino Customizado',
     service_price: 180.00,
     service_duration: 60,
-    service_color: '#C08497',
+    service_color: '#22D3EE',
     date: getTodayStr(0),
     start_time: '10:00',
     end_time: '11:00',
@@ -360,7 +360,7 @@ export const initialAppointments: Appointment[] = [
     service_name: 'Luzes & Mechas Platinum',
     service_price: 450.00,
     service_duration: 180,
-    service_color: '#8B5E83',
+    service_color: '#7C3AED',
     date: getTodayStr(0),
     start_time: '14:00',
     end_time: '17:00',
@@ -387,7 +387,7 @@ export const initialAppointments: Appointment[] = [
     service_name: 'Limpeza de Pele Ultrassônica',
     service_price: 220.00,
     service_duration: 75,
-    service_color: '#8B5E83',
+    service_color: '#7C3AED',
     date: getTodayStr(1),
     start_time: '11:00',
     end_time: '12:15',

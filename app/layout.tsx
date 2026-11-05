@@ -9,14 +9,14 @@ import { SiteAIChatWidget } from '@/components/SiteAIChatWidget';
 import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
-  title: 'Konnexy Agenda - Agendamento Online 100% Automático',
-  description: 'Agende seu horário online em menos de 1 minuto. Escolha o serviço, profissional e horário sem fila no WhatsApp.',
-  keywords: ['agendamento online', 'salão de beleza', 'mechas', 'corte feminino', 'manicure', 'estética', 'Konnexy Agenda'],
-  authors: [{ name: 'Konnexy Agenda' }],
+  title: 'Konnexy Agenda - Agendamento Inteligente & Gestão de Alta Performance',
+  description: 'Sistema completo de agendamento online e gestão operacional do ecossistema Konnexy. Agendamento sem atrito no WhatsApp e automação via IA.',
+  keywords: ['agendamento online', 'Konnexy Agenda', 'ecossistema Konnexy', 'gestão de salão', 'estética', 'FullCalendar', 'WhatsApp Cloud API'],
+  authors: [{ name: 'Konnexy Ecosystem' }],
   manifest: '/manifest.json',
   openGraph: {
-    title: 'Konnexy Agenda - Agendamento Online',
-    description: 'Agende seu horário online em menos de 1 minuto sem precisar enviar mensagem no WhatsApp.',
+    title: 'Konnexy Agenda - Agendamento Inteligente',
+    description: 'Agende seu horário online em menos de 1 minuto sem precisar de troca de mensagens manuais no WhatsApp.',
     type: 'website',
     locale: 'pt_BR',
     siteName: 'Konnexy Agenda',
@@ -29,19 +29,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR" className="scroll-smooth">
-      <body className="min-h-screen flex flex-col bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased selection:bg-[#C08497] selection:text-white">
+    <html lang="pt-BR" className="dark scroll-smooth">
+      <body className="min-h-screen flex flex-col bg-[#03050d] text-slate-100 antialiased selection:bg-cyan-400 selection:text-slate-950 konnexy-bg-ambient">
         <AppProvider>
           {/* Top Demo Role Switcher */}
           <RoleSwitcher />
           
-          {/* Navigation Bar */}
+          {/* Main Navigation Bar */}
           <Navbar />
 
           {/* Main Content Page */}
           <div className="flex-1">{children}</div>
 
-          {/* Floating AI Chat Widget on Website */}
+          {/* Floating AI Chat Widget */}
           <SiteAIChatWidget />
 
           {/* Online Booking Wizard Modal */}
@@ -51,7 +51,20 @@ export default function RootLayout({
           <Footer />
 
           {/* Hot Toast Alerts */}
-          <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
+          <Toaster 
+            position="top-right" 
+            toastOptions={{ 
+              duration: 4000,
+              style: {
+                background: '#0d1122',
+                color: '#f8fafc',
+                border: '1px solid rgba(34, 211, 238, 0.25)',
+                boxShadow: '0 8px 30px rgba(0, 0, 0, 0.5)',
+                borderRadius: '1rem',
+                fontSize: '0.875rem'
+              }
+            }} 
+          />
         </AppProvider>
       </body>
     </html>

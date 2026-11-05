@@ -2,140 +2,213 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 228 67% 3%; /* #03050D */
+    --foreground: 210 40% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 228 45% 6%; /* #080B14 */
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 228 45% 6%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 341 33% 64%; /* #C08497 */
-    --primary-foreground: 0 0% 100%;
+    /* Konnexy Brand Light Colors */
+    --primary: 187 85% 53%; /* #22D3EE Cyan */
+    --primary-foreground: 228 67% 3%;
 
-    --secondary: 30 23% 96%; /* #F8F5F2 */
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 224 44% 12%; /* #111827 */
+    --secondary-foreground: 210 40% 98%;
 
-    --accent: 309 19% 45%; /* #8B5E83 */
+    --accent: 263 70% 50%; /* #7C3AED Violet */
     --accent-foreground: 0 0% 100%;
 
-    --muted: 30 23% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 224 35% 15%;
+    --muted-foreground: 215 20% 65%;
 
-    --destructive: 0 72% 51%; /* #DC2626 */
+    --destructive: 0 84% 60%; /* #EF4444 */
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 341 33% 64%;
+    --success: 142 70% 49%; /* #25D366 */
+    --amber: 41 68% 56%; /* #D6A84B */
+
+    --border: 224 35% 18%;
+    --input: 224 35% 18%;
+    --ring: 187 85% 53%;
 
     --radius: 1rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%; /* #0F172A */
+    --background: 228 67% 3%; /* #03050D */
     --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 6.5%;
+    --card: 228 45% 6%;
     --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 6.5%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 341 33% 64%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --accent: 309 19% 55%;
-    --accent-foreground: 0 0% 100%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 341 33% 64%;
+    --border: 224 35% 18%;
   }
 }
 
 body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background-color: #03050d;
+  color: #f1f5f9;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   overflow-x: hidden;
+  min-height: 100vh;
 }
 
-/* Custom scrollbar */
+/* Custom Scrollbar Konnexy */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #03050d;
 }
 ::-webkit-scrollbar-thumb {
-  background: #C08497;
+  background: #1e293b;
   border-radius: 9999px;
+  border: 1px solid rgba(34, 211, 238, 0.15);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #8B5E83;
+  background: #22d3ee;
 }
 
-/* Glassmorphism utility */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-.dark .glass-panel {
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+/* Konnexy Atmospheric Background & Glass Utilities */
+.konnexy-bg-ambient {
+  background: 
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(34, 211, 238, 0.08), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 90% 20%, rgba(124, 58, 237, 0.06), transparent 60%),
+    #03050d;
 }
 
-/* FullCalendar styling overrides */
+.konnexy-card {
+  background: rgba(13, 17, 34, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.konnexy-card:hover {
+  border-color: rgba(34, 211, 238, 0.3);
+  box-shadow: 0 10px 35px -5px rgba(34, 211, 238, 0.12);
+  transform: translateY(-2px);
+}
+
+.konnexy-glass-panel {
+  background: rgba(8, 11, 20, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 25px -4px rgba(34, 211, 238, 0.35);
+}
+
+.glow-cyan-sm {
+  box-shadow: 0 0 15px -3px rgba(34, 211, 238, 0.25);
+}
+
+.glow-purple {
+  box-shadow: 0 0 25px -4px rgba(124, 58, 237, 0.35);
+}
+
+.glow-emerald {
+  box-shadow: 0 0 20px -3px rgba(37, 211, 102, 0.3);
+}
+
+.neon-border-cyan {
+  border: 1px solid rgba(34, 211, 238, 0.35);
+}
+
+.neon-border-purple {
+  border: 1px solid rgba(124, 58, 237, 0.35);
+}
+
+.konnexy-gradient-cyan-blue {
+  background: linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%);
+}
+
+.konnexy-gradient-cyan-purple {
+  background: linear-gradient(135deg, #22d3ee 0%, #7c3aed 100%);
+}
+
+.konnexy-gradient-text {
+  background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 40%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Accessible focus ring */
+:focus-visible {
+  outline: 2px solid #22d3ee;
+  outline-offset: 2px;
+}
+
+/* Reduced Motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* FullCalendar styling dark overrides */
 .fc {
   font-family: inherit !important;
+  background-color: transparent !important;
+  color: #e2e8f0 !important;
 }
 .fc-toolbar-title {
-  font-size: 1.25rem !important;
+  font-size: 1.15rem !important;
   font-weight: 700 !important;
-  color: hsl(var(--foreground)) !important;
+  color: #f8fafc !important;
 }
 .fc-button-primary {
-  background-color: #C08497 !important;
-  border-color: #C08497 !important;
+  background-color: #0f172a !important;
+  border-color: rgba(34, 211, 238, 0.3) !important;
+  color: #22d3ee !important;
   border-radius: 0.75rem !important;
   font-weight: 600 !important;
-  padding: 0.4rem 0.8rem !important;
+  padding: 0.45rem 0.9rem !important;
   text-transform: capitalize !important;
   transition: all 0.2s ease !important;
 }
 .fc-button-primary:hover, .fc-button-primary:focus {
-  background-color: #8B5E83 !important;
-  border-color: #8B5E83 !important;
-  box-shadow: none !important;
+  background-color: #22d3ee !important;
+  color: #03050d !important;
+  border-color: #22d3ee !important;
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.3) !important;
 }
 .fc-button-active {
-  background-color: #8B5E83 !important;
-  border-color: #8B5E83 !important;
+  background-color: #22d3ee !important;
+  color: #03050d !important;
+  border-color: #22d3ee !important;
 }
 .fc-theme-standard td, .fc-theme-standard th {
-  border-color: hsl(var(--border)) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+.fc-col-header-cell {
+  background-color: rgba(15, 23, 42, 0.6) !important;
+  color: #cbd5e1 !important;
+  padding: 8px 0 !important;
+  font-size: 0.85rem !important;
+}
+.fc-timegrid-slot-label {
+  color: #94a3b8 !important;
+  font-size: 0.75rem !important;
 }
 .fc-event {
   border-radius: 0.5rem !important;
-  padding: 2px 4px !important;
+  padding: 3px 6px !important;
   cursor: pointer !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
-  transition: transform 0.15s ease !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  border-width: 1px !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
 }
 .fc-event:hover {
-  transform: scale(1.02);
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 6px 16px rgba(34, 211, 238, 0.25) !important;
 }

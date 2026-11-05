@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { DataStore } from '@/lib/store';
 import { Coupon, InventoryItem, Salon } from '@/types';
 import { formatCurrency, exportToCSV } from '@/lib/utils';
+import { AdminNav } from '@/components/admin/AdminNav';
 import { 
   Calendar, 
   Users, 
@@ -94,7 +95,7 @@ export default function AdminDashboardPage() {
       setIsAiAnalyzing(false);
       const q = aiQuestion.toLowerCase();
       if (q.includes('horário') || q.includes('agenda') || q.includes('abrir')) {
-        setCustomAiAnswer('🤖 **Konnexy AI**: Com base nos últimos 6 meses, as quintas-feiras às 18h e sábados às 10h têm 97% de taxa de ocupação. Recomendamos abrir 2 vagas extras de encaixe nesses horários.');
+        setCustomAiAnswer('🤖 **Konnexy AI**: Com base nos últimos 6 meses, as quintas-feiras às 18h e sábados às 10h têm 97% de taxa de ocupação. Recomendamos abrir 2 vagas extras nesses horários.');
       } else if (q.includes('promoção') || q.includes('terça') || q.includes('desconto')) {
         setCustomAiAnswer('🤖 **Konnexy AI**: As terças-feiras possuem apenas 38% de ocupação. Sugestão: Crie um cupom de 15% OFF exclusivo para "Hidratação Kérastase" nas terças-feiras.');
       } else if (q.includes('retorno') || q.includes('cliente') || q.includes('voltar')) {
@@ -136,11 +137,11 @@ export default function AdminDashboardPage() {
     DataStore.updateSalon(updated);
     setSalon(updated);
     setIsWhiteLabelModalOpen(false);
-    toast.success('Configurações White-Label da marca salvas!');
+    toast.success('Configurações salvas!');
   };
 
   const handleNotifyVipPush = () => {
-    toast.success('Notificação PUSH enviada para 12 Clientes VIP Ouro/Diamante!');
+    toast.success('Notificação enviada para 12 Clientes VIP Ouro/Diamante!');
   };
 
   const handleExportSummaryCSV = () => {
@@ -159,34 +160,38 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-10 px-4 sm:px-6 lg:px-8 space-y-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen pb-16">
+      {/* Admin Module Navigation Bar */}
+      <AdminNav />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         {/* Top Header Bar with Unit Selector */}
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-rose-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="konnexy-card rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C08497]/15 text-[#8B5E83] dark:text-rose-300 text-xs font-bold uppercase">
-              <Building2 className="w-3.5 h-3.5" /> Multi-Unidade White-Label
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 text-xs font-semibold uppercase">
+              <Building2 className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Multi-Unidade Konnexy</span>
             </div>
-            <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-              {salon.name} - Painel Geral
+            <h1 className="text-2xl font-black text-white flex items-center gap-2">
+              {salon.name} - Visão Geral do Painel
             </h1>
-            <p className="text-xs text-slate-500">
-              Gestão comercial completa: IA Preditiva, Estoque, Vendas, Gráficos e Notificações.
+            <p className="text-xs text-slate-400">
+              Gestão comercial integrada: IA Preditiva, Estoque, Vendas, Gráficos e Notificações em tempo real.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             {/* Unit Selector */}
-            <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs font-bold">
+            <div className="flex items-center gap-1.5 bg-[#080b17] p-1 rounded-xl border border-white/10 text-xs font-bold">
               {units.map((u) => (
                 <button
                   key={u.id}
                   onClick={() => setSelectedUnitId(u.id)}
-                  className={`px-3 py-1.5 rounded-xl transition-all ${
+                  className={`px-3 py-1.5 rounded-lg transition-all ${
                     selectedUnitId === u.id
-                      ? 'bg-[#C08497] text-white shadow-sm'
-                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                      ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold shadow-sm'
+                      : 'text-slate-400 hover:text-white'
                   }`}
                 >
                   {u.name.split(' ')[1] || u.name}
@@ -196,248 +201,229 @@ export default function AdminDashboardPage() {
 
             <button
               onClick={handleExportSummaryCSV}
-              className="px-4 py-2.5 rounded-2xl bg-slate-900 text-white text-xs font-bold flex items-center gap-2 hover:bg-slate-800 shadow-sm"
+              className="px-3.5 py-2 rounded-xl bg-[#080b17] hover:bg-slate-800 text-slate-200 border border-white/10 text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
             >
-              <Download className="w-4 h-4" /> CSV
+              <Download className="w-3.5 h-3.5 text-cyan-400" /> Exportar CSV
             </button>
           </div>
         </div>
 
-        {/* Quick Nav Sub-modules Bar */}
-        <div className="flex items-center gap-3 overflow-x-auto pb-1 text-xs font-bold">
-          <Link href="/admin" className="px-4 py-2 rounded-xl bg-[#C08497] text-white shadow-sm shrink-0">
-            Visão Geral & IA
-          </Link>
-          <Link href="/admin/whatsapp" className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 shadow-sm flex items-center gap-1.5 shrink-0">
-            <Bot className="w-3.5 h-3.5" /> WhatsApp & Gemini AI
-          </Link>
-          <Link href="/admin/calendario" className="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:bg-rose-50 shrink-0">
-            FullCalendar
-          </Link>
-          <Link href="/admin/servicos" className="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:bg-rose-50 shrink-0">
-            Serviços
-          </Link>
-          <Link href="/admin/profissionais" className="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:bg-rose-50 shrink-0">
-            Equipe
-          </Link>
-          <Link href="/admin/clientes" className="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:bg-rose-50 shrink-0">
-            CRM VIP
-          </Link>
-          <Link href="/admin/financeiro" className="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:bg-rose-50 shrink-0">
-            Financeiro
-          </Link>
-        </div>
-
         {/* ADMIN QUICK ACTIONS BAR */}
-        <div className="p-4 rounded-3xl bg-gradient-to-r from-[#F8F5F2] to-rose-50 dark:from-slate-900 dark:to-slate-800/90 border border-rose-200 dark:border-slate-700 space-y-3">
-          <span className="text-xs font-extrabold text-[#8B5E83] dark:text-rose-300 uppercase tracking-wider block">
-            ⚡ Central de Ações Rápidas do Administrador
+        <div className="p-4 rounded-2xl bg-[#0b1022] border border-white/10 space-y-3">
+          <span className="text-xs font-bold text-cyan-300 uppercase tracking-wider block">
+            ⚡ Ações Rápidas de Gestão
           </span>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
             <button
               onClick={() => setBookingModalOpen(true)}
-              className="p-3 rounded-2xl bg-white dark:bg-slate-800 border border-rose-100 dark:border-slate-700 text-slate-800 dark:text-white font-bold flex items-center gap-2 hover:bg-rose-50/50 shadow-sm"
+              className="p-3 rounded-xl bg-[#080b17] hover:bg-slate-800 border border-white/10 text-white font-semibold flex items-center gap-2 transition-all hover:border-cyan-500/30"
             >
-              <Zap className="w-4 h-4 text-amber-500" /> Encaixe de Emergência
+              <Zap className="w-4 h-4 text-cyan-400" />
+              <span>Encaixe de Agenda</span>
             </button>
 
             <button
               onClick={() => setIsCouponModalOpen(true)}
-              className="p-3 rounded-2xl bg-white dark:bg-slate-800 border border-rose-100 dark:border-slate-700 text-slate-800 dark:text-white font-bold flex items-center gap-2 hover:bg-rose-50/50 shadow-sm"
+              className="p-3 rounded-xl bg-[#080b17] hover:bg-slate-800 border border-white/10 text-white font-semibold flex items-center gap-2 transition-all hover:border-violet-500/30"
             >
-              <Tag className="w-4 h-4 text-[#C08497]" /> Criar Cupom Express
+              <Tag className="w-4 h-4 text-violet-400" />
+              <span>Criar Cupom Express</span>
             </button>
 
             <button
               onClick={handleNotifyVipPush}
-              className="p-3 rounded-2xl bg-white dark:bg-slate-800 border border-rose-100 dark:border-slate-700 text-slate-800 dark:text-white font-bold flex items-center gap-2 hover:bg-rose-50/50 shadow-sm"
+              className="p-3 rounded-xl bg-[#080b17] hover:bg-slate-800 border border-white/10 text-white font-semibold flex items-center gap-2 transition-all hover:border-blue-500/30"
             >
-              <Bell className="w-4 h-4 text-blue-500" /> Notificar Clientes VIP
+              <Bell className="w-4 h-4 text-blue-400" />
+              <span>Notificar Clientes VIP</span>
             </button>
 
             <button
               onClick={() => setIsWhiteLabelModalOpen(true)}
-              className="p-3 rounded-2xl bg-white dark:bg-slate-800 border border-rose-100 dark:border-slate-700 text-slate-800 dark:text-white font-bold flex items-center gap-2 hover:bg-rose-50/50 shadow-sm"
+              className="p-3 rounded-xl bg-[#080b17] hover:bg-slate-800 border border-white/10 text-white font-semibold flex items-center gap-2 transition-all hover:border-cyan-500/30"
             >
-              <Settings className="w-4 h-4 text-[#8B5E83]" /> Marca White-Label
+              <Settings className="w-4 h-4 text-slate-400" />
+              <span>Dados do Estabelecimento</span>
             </button>
           </div>
         </div>
 
         {/* KONNEXY AI COPILOT SECTION */}
-        <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 rounded-3xl p-6 sm:p-8 text-white space-y-6 shadow-xl border border-slate-800">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-4">
+        <div className="konnexy-card rounded-2xl p-6 sm:p-8 text-white space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#C08497] to-[#8B5E83] flex items-center justify-center text-white shadow-lg">
-                <Bot className="w-7 h-7" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-slate-950 shadow-md shadow-cyan-500/20 font-bold">
+                <Bot className="w-5 h-5 text-slate-950" />
               </div>
               <div>
-                <span className="text-xs text-rose-300 font-extrabold uppercase tracking-wider block">Módulo Preditivo</span>
-                <h2 className="text-xl font-extrabold">Konnexy AI Copilot</h2>
+                <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider block">Inteligência Estratégica</span>
+                <h2 className="text-lg font-extrabold text-white">Konnexy AI Copilot</h2>
               </div>
             </div>
-            <span className="text-xs bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full font-bold border border-emerald-500/30">
-              ● IA Ativa (Histórico de 6 meses)
+            <span className="text-xs bg-emerald-950/60 text-emerald-400 px-3 py-1 rounded-full font-bold border border-emerald-500/30 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              IA Ativa • Dados Consolidados
             </span>
           </div>
 
           <form onSubmit={handleAskAI} className="space-y-3">
             <label className="text-xs text-slate-300 font-medium block">
-              Pergunte qualquer coisa à IA sobre o desempenho do seu salão:
+              Consulte a IA sobre taxas de retorno, horários de pico ou sugestões de receita:
             </label>
             <div className="flex gap-2">
               <input
                 type="text"
-                placeholder="Ex: Qual o melhor horário para abrir promoção? Ou quando os clientes de luzes voltam?"
+                placeholder="Ex: Qual o melhor horário para abrir encaixes? Ou quando clientes de mechas costumam voltar?"
                 value={aiQuestion}
                 onChange={(e) => setAiQuestion(e.target.value)}
-                className="flex-1 px-4 py-3 rounded-2xl bg-slate-800 border border-slate-700 text-white placeholder:text-slate-500 text-xs outline-none focus:ring-2 focus:ring-[#C08497]"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-[#080b17] border border-white/10 text-white placeholder:text-slate-500 text-xs outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
               />
               <button
                 type="submit"
                 disabled={isAiAnalyzing}
-                className="px-5 py-3 rounded-2xl bg-gradient-to-r from-[#C08497] to-[#8B5E83] text-white text-xs font-bold shadow-md hover:opacity-90 disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 text-xs font-bold shadow-md hover:opacity-90 disabled:opacity-50 flex items-center gap-1.5 shrink-0"
               >
-                <Send className="w-4 h-4" /> {isAiAnalyzing ? 'Analisando...' : 'Analisar com IA'}
+                <Send className="w-3.5 h-3.5" />
+                <span>{isAiAnalyzing ? 'Processando...' : 'Consultar IA'}</span>
               </button>
             </div>
           </form>
 
           {customAiAnswer && (
-            <div className="p-4 rounded-2xl bg-slate-800/90 border border-rose-400/30 text-xs text-rose-100 space-y-1 animate-in fade-in">
-              <p className="leading-relaxed">{customAiAnswer}</p>
+            <div className="p-4 rounded-xl bg-cyan-950/30 border border-cyan-500/30 text-xs text-cyan-100 space-y-1 animate-in fade-in">
+              <p className="leading-relaxed whitespace-pre-line">{customAiAnswer}</p>
             </div>
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
             {aiInsights.map((item) => (
-              <div key={item.id} className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/80 space-y-2 flex flex-col justify-between">
+              <div key={item.id} className="p-4 rounded-xl bg-[#080b17] border border-white/5 space-y-2 flex flex-col justify-between hover:border-cyan-500/20 transition-all">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-bold text-[#C08497] uppercase tracking-wider">{item.category}</span>
-                  <h4 className="font-bold text-sm text-white">{item.title}</h4>
-                  <p className="text-xs text-slate-300 leading-relaxed">{item.insight}</p>
+                  <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">{item.category}</span>
+                  <h3 className="font-bold text-sm text-white">{item.title}</h3>
+                  <p className="text-xs text-slate-400 leading-relaxed">{item.insight}</p>
                 </div>
-                <div className="pt-2 border-t border-slate-700/60 flex items-center justify-between text-[11px]">
+                <div className="pt-2 border-t border-white/5 flex items-center justify-between text-xs">
                   <span className="text-emerald-400 font-bold">{item.metric}</span>
-                  <span className="text-slate-400 font-medium">Recomendado</span>
+                  <span className="text-slate-500 font-medium">Recomendação</span>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* 8 RICH KPI METRIC CARDS */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-rose-100 dark:border-slate-800 shadow-sm space-y-2">
-            <div className="flex justify-between items-center text-xs font-bold text-slate-500">
+        {/* 8 KPI METRIC CARDS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="konnexy-card rounded-2xl p-5 space-y-2">
+            <div className="flex justify-between items-center text-xs font-bold text-slate-400">
               <span>Agendamentos Hoje</span>
-              <Calendar className="w-4 h-4 text-[#C08497]" />
+              <Calendar className="w-4 h-4 text-cyan-400" />
             </div>
-            <p className="text-3xl font-black text-slate-900 dark:text-white">
+            <p className="text-3xl font-black text-white">
               {todayAppointments.length}
             </p>
-            <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5" /> +15% vs semana passada
+            <p className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+              <TrendingUp className="w-3.5 h-3.5" /> +15% vs média
             </p>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-rose-100 dark:border-slate-800 shadow-sm space-y-2">
-            <div className="flex justify-between items-center text-xs font-bold text-slate-500">
-              <span>Taxa de Ocupação Real</span>
-              <PieChart className="w-4 h-4 text-[#8B5E83]" />
+          <div className="konnexy-card rounded-2xl p-5 space-y-2">
+            <div className="flex justify-between items-center text-xs font-bold text-slate-400">
+              <span>Taxa de Ocupação</span>
+              <PieChart className="w-4 h-4 text-violet-400" />
             </div>
-            <p className="text-3xl font-black text-[#8B5E83] dark:text-rose-300">
+            <p className="text-3xl font-black text-white">
               88.4%
             </p>
             <p className="text-[11px] text-slate-400">Pico: Quintas e Sábados</p>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-rose-100 dark:border-slate-800 shadow-sm space-y-2">
-            <div className="flex justify-between items-center text-xs font-bold text-slate-500">
-              <span>Ticket Médio por Cliente</span>
-              <DollarSign className="w-4 h-4 text-emerald-600" />
+          <div className="konnexy-card rounded-2xl p-5 space-y-2">
+            <div className="flex justify-between items-center text-xs font-bold text-slate-400">
+              <span>Ticket Médio por Atendimento</span>
+              <DollarSign className="w-4 h-4 text-emerald-400" />
             </div>
-            <p className="text-3xl font-black text-emerald-600">
+            <p className="text-3xl font-black text-emerald-400">
               {formatCurrency(ticketMedio || 245.00)}
             </p>
-            <p className="text-[11px] text-slate-400">Base em {appointments.length} atendimentos</p>
+            <p className="text-[11px] text-slate-400">Base em {appointments.length} procedimentos</p>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-rose-100 dark:border-slate-800 shadow-sm space-y-2">
-            <div className="flex justify-between items-center text-xs font-bold text-slate-500">
-              <span>Taxa de Retenção (VIP)</span>
-              <Award className="w-4 h-4 text-[#C08497]" />
+          <div className="konnexy-card rounded-2xl p-5 space-y-2">
+            <div className="flex justify-between items-center text-xs font-bold text-slate-400">
+              <span>Taxa de Retenção de Clientes</span>
+              <Award className="w-4 h-4 text-amber-400" />
             </div>
-            <p className="text-3xl font-black text-slate-900 dark:text-white">
+            <p className="text-3xl font-black text-white">
               {recurrentRate}%
             </p>
-            <p className="text-[11px] text-slate-400">{recurrentClients} clientes recorrentes</p>
+            <p className="text-[11px] text-slate-400">{recurrentClients} clientes com 2+ visitas</p>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
-            <div className="flex justify-between items-center text-xs font-bold text-slate-500">
-              <span>Horário Mais Vendido</span>
-              <Clock className="w-4 h-4 text-[#C08497]" />
+          <div className="konnexy-card rounded-2xl p-5 space-y-2">
+            <div className="flex justify-between items-center text-xs font-bold text-slate-400">
+              <span>Horário de Maior Procura</span>
+              <Clock className="w-4 h-4 text-cyan-400" />
             </div>
-            <p className="text-2xl font-black text-slate-800 dark:text-white">
+            <p className="text-xl font-black text-white">
               14:00 - 15:00
             </p>
             <p className="text-[11px] text-slate-400">Seguido por 18:00h</p>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
-            <div className="flex justify-between items-center text-xs font-bold text-slate-500">
-              <span>Serviço Mais Popular</span>
-              <Scissors className="w-4 h-4 text-[#8B5E83]" />
+          <div className="konnexy-card rounded-2xl p-5 space-y-2">
+            <div className="flex justify-between items-center text-xs font-bold text-slate-400">
+              <span>Procedimento Mais Vendido</span>
+              <Scissors className="w-4 h-4 text-violet-400" />
             </div>
-            <p className="text-lg font-black text-[#8B5E83] dark:text-rose-300 truncate">
+            <p className="text-base font-black text-white truncate">
               Luzes & Mechas Platinum
             </p>
-            <p className="text-[11px] text-slate-400">42% do faturamento total</p>
+            <p className="text-[11px] text-slate-400">42% da receita bruta</p>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
-            <div className="flex justify-between items-center text-xs font-bold text-slate-500">
-              <span>Profissional Líder</span>
-              <Users className="w-4 h-4 text-emerald-600" />
+          <div className="konnexy-card rounded-2xl p-5 space-y-2">
+            <div className="flex justify-between items-center text-xs font-bold text-slate-400">
+              <span>Profissional Destaque</span>
+              <Users className="w-4 h-4 text-emerald-400" />
             </div>
-            <p className="text-lg font-black text-slate-800 dark:text-white truncate">
+            <p className="text-base font-black text-white truncate">
               Juliana Calixto
             </p>
-            <p className="text-[11px] text-slate-400">98% de avaliações 5★</p>
+            <p className="text-[11px] text-slate-400">98% avaliações positivas</p>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
-            <div className="flex justify-between items-center text-xs font-bold text-slate-500">
-              <span>Taxa de Faltas (No-Show)</span>
-              <XCircle className="w-4 h-4 text-rose-500" />
+          <div className="konnexy-card rounded-2xl p-5 space-y-2">
+            <div className="flex justify-between items-center text-xs font-bold text-slate-400">
+              <span>Taxa de Cancelamento</span>
+              <XCircle className="w-4 h-4 text-rose-400" />
             </div>
-            <p className="text-3xl font-black text-rose-500">
-              2.1%
+            <p className="text-3xl font-black text-rose-400">
+              {cancellationRate}%
             </p>
-            <p className="text-[11px] text-slate-400">Cancelamentos: {cancellationRate}%</p>
+            <p className="text-[11px] text-slate-400">Abaixo da média de mercado (5%)</p>
           </div>
         </div>
 
-        {/* INTERACTIVE VISUAL CHARTS SECTION */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* VISUAL CHARTS SECTION */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
           
-          {/* Revenue & Profit Monthly Bar Chart */}
-          <div className="lg:col-span-8 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-            <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+          {/* Revenue Bar Representation */}
+          <div className="lg:col-span-8 konnexy-card rounded-2xl p-6 space-y-6">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
               <div>
-                <h3 className="font-bold text-slate-800 dark:text-white text-base flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-[#C08497]" /> Evolução Mensal de Faturamento & Lucro
+                <h3 className="font-bold text-white text-base flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-cyan-400" /> Faturamento & Lucratividade Consolidada
                 </h3>
-                <p className="text-xs text-slate-500">Desempenho consolidado dos últimos 6 meses</p>
+                <p className="text-xs text-slate-400">Evolução dos últimos 6 meses</p>
               </div>
-              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-slate-800 px-3 py-1 rounded-full border border-emerald-200">
+              <span className="text-xs font-bold text-emerald-400 bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-500/30">
                 +24% Crescimento Médio
               </span>
             </div>
 
-            {/* Visual Bar Graph Representation */}
-            <div className="h-64 flex items-end justify-between gap-3 pt-6 px-4 border-b border-slate-100 dark:border-slate-800">
+            {/* Visual Bar Graph */}
+            <div className="h-64 flex items-end justify-between gap-3 pt-6 px-4 border-b border-white/5">
               {[
                 { month: 'Fev', revenue: 34000, profit: 14000, heightRev: '55%', heightProf: '30%' },
                 { month: 'Mar', revenue: 38000, profit: 16500, heightRev: '65%', heightProf: '35%' },
@@ -451,102 +437,106 @@ export default function AdminDashboardPage() {
                     {/* Revenue Bar */}
                     <div 
                       style={{ height: bar.heightRev }} 
-                      className="w-1/2 bg-gradient-to-t from-[#C08497] to-[#8B5E83] rounded-t-xl group-hover:opacity-90 transition-all relative"
+                      className="w-1/2 bg-gradient-to-t from-cyan-600 to-blue-500 rounded-t-lg group-hover:brightness-110 transition-all relative"
                     >
-                      <span className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] py-0.5 px-1.5 rounded font-bold whitespace-nowrap shadow z-10">
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 left-1/2 -translate-x-1/2 bg-[#03050d] text-white text-[10px] py-0.5 px-1.5 rounded font-bold whitespace-nowrap shadow border border-cyan-500/30 z-10">
                         {formatCurrency(bar.revenue)}
                       </span>
                     </div>
                     {/* Profit Bar */}
                     <div 
                       style={{ height: bar.heightProf }} 
-                      className="w-1/2 bg-emerald-500 rounded-t-xl group-hover:opacity-90 transition-all relative"
+                      className="w-1/2 bg-[#25D366] rounded-t-lg group-hover:brightness-110 transition-all relative"
                     >
-                      <span className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] py-0.5 px-1.5 rounded font-bold whitespace-nowrap shadow z-10">
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 left-1/2 -translate-x-1/2 bg-[#03050d] text-white text-[10px] py-0.5 px-1.5 rounded font-bold whitespace-nowrap shadow border border-emerald-500/30 z-10">
                         {formatCurrency(bar.profit)}
                       </span>
                     </div>
                   </div>
-                  <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{bar.month}</span>
+                  <span className="text-xs font-semibold text-slate-400">{bar.month}</span>
                 </div>
               ))}
             </div>
 
-            <div className="flex justify-center gap-6 text-xs font-bold">
-              <span className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                <span className="w-3 h-3 rounded-full bg-[#C08497]" /> Receita Bruta Total
+            <div className="flex justify-center gap-6 text-xs font-semibold">
+              <span className="flex items-center gap-2 text-slate-300">
+                <span className="w-3 h-3 rounded-full bg-cyan-500" /> Faturamento Bruto
               </span>
-              <span className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                <span className="w-3 h-3 rounded-full bg-emerald-500" /> Lucro Líquido
+              <span className="flex items-center gap-2 text-slate-300">
+                <span className="w-3 h-3 rounded-full bg-[#25D366]" /> Lucro Líquido
               </span>
             </div>
           </div>
 
-          {/* Revenue Distribution Category Breakdown */}
-          <div className="lg:col-span-4 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-            <h3 className="font-bold text-slate-800 dark:text-white text-base border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
-              <PieChart className="w-5 h-5 text-[#8B5E83]" /> Faturamento por Categoria
+          {/* Category Breakdown */}
+          <div className="lg:col-span-4 konnexy-card rounded-2xl p-6 space-y-6">
+            <h3 className="font-bold text-white text-base border-b border-white/10 pb-3 flex items-center gap-2">
+              <PieChart className="w-5 h-5 text-violet-400" /> Receita por Categoria
             </h3>
 
             <div className="space-y-4">
               {[
-                { cat: 'Coloração & Mechas', pct: 42, color: 'bg-[#8B5E83]', val: 'R$ 22.008' },
-                { cat: 'Cabelos & Penteados', pct: 31, color: 'bg-[#C08497]', val: 'R$ 16.244' },
-                { cat: 'Estética & Facial', pct: 15, color: 'bg-emerald-500', val: 'R$ 7.860' },
-                { cat: 'Unhas & Sobrancelhas', pct: 12, color: 'bg-amber-500', val: 'R$ 6.288' },
+                { cat: 'Coloração & Mechas', pct: 42, color: 'bg-violet-500', val: 'R$ 22.008' },
+                { cat: 'Cabelos & Penteados', pct: 31, color: 'bg-cyan-500', val: 'R$ 16.244' },
+                { cat: 'Estética & Facial', pct: 15, color: 'bg-blue-500', val: 'R$ 7.860' },
+                { cat: 'Unhas & Sobrancelhas', pct: 12, color: 'bg-emerald-500', val: 'R$ 6.288' },
               ].map((item) => (
                 <div key={item.cat} className="space-y-1.5">
-                  <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
+                  <div className="flex justify-between text-xs font-semibold text-slate-300">
                     <span>{item.cat}</span>
                     <span>{item.pct}% ({item.val})</span>
                   </div>
-                  <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div className="w-full h-2.5 bg-[#080b17] rounded-full overflow-hidden border border-white/5">
                     <div style={{ width: `${item.pct}%` }} className={`h-full ${item.color} rounded-full`} />
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="p-4 rounded-2xl bg-rose-50/60 dark:bg-slate-800/50 border border-rose-100 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 space-y-1">
-              <p className="font-bold text-slate-800 dark:text-white">💡 Insight Estratégico:</p>
-              <p>Coloração & Mechas representa 42% da receita total. Recomenda-se treinar mais 1 colaborador para atender a alta demanda.</p>
+            <div className="p-4 rounded-xl bg-violet-950/20 border border-violet-500/20 text-xs text-slate-300 space-y-1">
+              <p className="font-bold text-violet-300 flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5" /> Oportunidade de Otimização:
+              </p>
+              <p className="text-slate-400 leading-relaxed">
+                Coloração representa 42% da receita total. Abertura de vagas extras nas sextas-feiras tem potencial de elevar o faturamento mensal em 12%.
+              </p>
             </div>
           </div>
 
         </div>
 
-        {/* INVENTORY & SUPPLIES TRACKER + SALÃO LIVE FEED */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* INVENTORY TRACKER + LIVE FEED */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
           
           {/* Inventory Tracker */}
-          <div className="lg:col-span-7 bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h3 className="font-bold text-slate-800 dark:text-white text-base flex items-center gap-2">
-                <Package className="w-5 h-5 text-[#C08497]" /> Controle de Estoque & Insumos
+          <div className="lg:col-span-7 konnexy-card rounded-2xl p-6 space-y-4">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <h3 className="font-bold text-white text-base flex items-center gap-2">
+                <Package className="w-5 h-5 text-cyan-400" /> Controle de Insumos & Estoque
               </h3>
-              <span className="text-xs text-slate-400 font-medium">5 produtos monitorados</span>
+              <span className="text-xs text-slate-400">5 itens monitorados</span>
             </div>
 
             <div className="space-y-3">
               {inventory.map((item) => (
-                <div key={item.id} className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs">
+                <div key={item.id} className="p-3.5 rounded-xl bg-[#080b17] border border-white/5 flex justify-between items-center text-xs">
                   <div className="space-y-0.5">
-                    <span className="font-bold text-slate-800 dark:text-white block">{item.name}</span>
-                    <span className="text-slate-400 text-[11px]">{item.category} • Fornecedor: {item.supplier}</span>
+                    <span className="font-bold text-white block">{item.name}</span>
+                    <span className="text-slate-400 text-[11px]">{item.category} • {item.supplier}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <span className="font-extrabold text-slate-800 dark:text-slate-200 block">{item.quantity} {item.unit}</span>
-                      <span className="text-[10px] text-slate-400">Mínimo: {item.min_quantity}</span>
+                      <span className="font-extrabold text-white block">{item.quantity} {item.unit}</span>
+                      <span className="text-[10px] text-slate-500">Mínimo: {item.min_quantity}</span>
                     </div>
                     {item.status === 'low' && (
-                      <span className="px-2 py-1 bg-amber-100 text-amber-800 font-bold text-[10px] rounded-lg">Baixo</span>
+                      <span className="px-2 py-0.5 bg-amber-950/60 border border-amber-500/40 text-amber-300 font-bold text-[10px] rounded-lg">Atenção</span>
                     )}
                     {item.status === 'critical' && (
-                      <span className="px-2 py-1 bg-rose-100 text-rose-800 font-bold text-[10px] rounded-lg">Crítico</span>
+                      <span className="px-2 py-0.5 bg-rose-950/60 border border-rose-500/40 text-rose-300 font-bold text-[10px] rounded-lg">Crítico</span>
                     )}
                     {item.status === 'ok' && (
-                      <span className="px-2 py-1 bg-emerald-100 text-emerald-800 font-bold text-[10px] rounded-lg">OK</span>
+                      <span className="px-2 py-0.5 bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 font-bold text-[10px] rounded-lg">OK</span>
                     )}
                   </div>
                 </div>
@@ -554,31 +544,31 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Salão Live Activity Feed */}
-          <div className="lg:col-span-5 bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-            <h3 className="font-bold text-slate-800 dark:text-white text-base border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
-              <Zap className="w-5 h-5 text-amber-500" /> Feed de Atividades ao Vivo
+          {/* Activity Feed */}
+          <div className="lg:col-span-5 konnexy-card rounded-2xl p-6 space-y-4">
+            <h3 className="font-bold text-white text-base border-b border-white/10 pb-3 flex items-center gap-2">
+              <Zap className="w-5 h-5 text-amber-400" /> Atividades Recentes
             </h3>
 
             <div className="space-y-3">
               {[
-                { time: '10:02', title: 'Agendamento Confirmado via WhatsApp', desc: 'Fernanda Lima confirmou Corte Feminino com Gemini AI', icon: Bot, color: 'text-emerald-500' },
-                { time: '09:45', title: 'Pagamento PIX Recebido', desc: 'R$ 180,00 referente ao comprovante #apt-1', icon: DollarSign, color: 'text-emerald-600' },
-                { time: '09:12', title: 'Cliente Atingiu VIP Diamante', desc: 'Mariana Mendonça realizou sua 12ª visita', icon: Award, color: 'text-cyan-500' },
-                { time: '08:30', title: 'Alerta de Estoque Baixo', desc: 'Tintura Wella Illumina 8.69 restam 3 tubos', icon: AlertTriangle, color: 'text-amber-500' },
+                { time: '10:02', title: 'Agendamento Confirmado via WhatsApp', desc: 'Fernanda Lima confirmou Corte Feminino', icon: Bot, color: 'text-emerald-400' },
+                { time: '09:45', title: 'Pagamento Confirmado', desc: 'R$ 180,00 referente ao comprovante #apt-1', icon: DollarSign, color: 'text-cyan-400' },
+                { time: '09:12', title: 'Cliente Promovida a VIP', desc: 'Mariana Mendonça realizou sua 12ª visita', icon: Award, color: 'text-amber-400' },
+                { time: '08:30', title: 'Alerta de Insumo Baixo', desc: 'Tintura Wella Illumina 8.69 restam 3 tubos', icon: AlertTriangle, color: 'text-rose-400' },
               ].map((feed, idx) => {
                 const IconComponent = feed.icon;
                 return (
-                  <div key={idx} className="flex gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">
-                    <div className={`p-2 rounded-xl bg-slate-100 dark:bg-slate-800 ${feed.color} shrink-0`}>
+                  <div key={idx} className="flex gap-3 p-2.5 rounded-xl hover:bg-[#080b17] text-xs transition-colors">
+                    <div className={`p-2 rounded-xl bg-[#080b17] border border-white/5 ${feed.color} shrink-0`}>
                       <IconComponent className="w-4 h-4" />
                     </div>
                     <div className="space-y-0.5">
                       <div className="flex justify-between items-center">
-                        <h4 className="font-bold text-slate-800 dark:text-white">{feed.title}</h4>
-                        <span className="text-[10px] text-slate-400">{feed.time}</span>
+                        <h4 className="font-bold text-white">{feed.title}</h4>
+                        <span className="text-[10px] text-slate-500">{feed.time}</span>
                       </div>
-                      <p className="text-slate-500 text-[11px]">{feed.desc}</p>
+                      <p className="text-slate-400 text-[11px]">{feed.desc}</p>
                     </div>
                   </div>
                 );
@@ -592,43 +582,49 @@ export default function AdminDashboardPage() {
 
       {/* EXPRESS COUPON MODAL */}
       {isCouponModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <form onSubmit={handleCreateExpressCoupon} className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-full max-w-md space-y-4 border border-rose-100 dark:border-slate-800 shadow-2xl">
-            <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h3 className="font-bold text-slate-800 dark:text-white text-base flex items-center gap-2">
-                <Tag className="w-5 h-5 text-[#C08497]" /> Criar Cupom Express
+        <div className="fixed inset-0 z-50 bg-[#03050d]/80 backdrop-blur-md flex items-center justify-center p-4">
+          <form onSubmit={handleCreateExpressCoupon} className="bg-[#080b17] rounded-2xl p-6 w-full max-w-md space-y-4 border border-white/10 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <h3 className="font-bold text-white text-base flex items-center gap-2">
+                <Tag className="w-4 h-4 text-cyan-400" /> Cadastrar Cupom de Desconto
               </h3>
-              <button type="button" onClick={() => setIsCouponModalOpen(false)}><X className="w-5 h-5 text-slate-400" /></button>
+              <button type="button" onClick={() => setIsCouponModalOpen(false)}>
+                <X className="w-5 h-5 text-slate-400 hover:text-white" />
+              </button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300">Código do Cupom</label>
+                <label className="font-semibold text-slate-300 block mb-1">Código do Cupom</label>
                 <input
                   type="text"
                   required
-                  placeholder="Ex: BELEZA15 ou VERAO20"
+                  placeholder="Ex: PROMO20 ou VIP30"
                   value={newCouponCode}
                   onChange={(e) => setNewCouponCode(e.target.value.toUpperCase())}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 font-mono text-slate-900 dark:text-white uppercase font-bold"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#0d1122] text-white font-mono uppercase font-bold focus:border-cyan-400 outline-none"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300">Valor do Desconto (%)</label>
+                <label className="font-semibold text-slate-300 block mb-1">Percentual de Desconto (%)</label>
                 <input
                   type="number"
                   required
                   value={newCouponDiscount}
                   onChange={(e) => setNewCouponDiscount(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#0d1122] text-white font-bold focus:border-cyan-400 outline-none"
                 />
               </div>
             </div>
 
             <div className="flex gap-2 pt-2">
-              <button type="button" onClick={() => setIsCouponModalOpen(false)} className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-bold">Cancelar</button>
-              <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#C08497] text-white text-xs font-bold">Criar Cupom</button>
+              <button type="button" onClick={() => setIsCouponModalOpen(false)} className="flex-1 py-2.5 rounded-xl bg-[#0d1122] text-slate-300 text-xs font-semibold hover:bg-slate-800">
+                Cancelar
+              </button>
+              <button type="submit" className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 text-xs font-bold shadow-md shadow-cyan-500/20">
+                Criar Cupom
+              </button>
             </div>
           </form>
         </div>
@@ -636,53 +632,59 @@ export default function AdminDashboardPage() {
 
       {/* WHITE-LABEL BRAND MODAL */}
       {isWhiteLabelModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <form onSubmit={handleSaveWhiteLabel} className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-full max-w-md space-y-4 border border-rose-100 dark:border-slate-800 shadow-2xl">
-            <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h3 className="font-bold text-slate-800 dark:text-white text-base flex items-center gap-2">
-                <Settings className="w-5 h-5 text-[#8B5E83]" /> Marca White-Label
+        <div className="fixed inset-0 z-50 bg-[#03050d]/80 backdrop-blur-md flex items-center justify-center p-4">
+          <form onSubmit={handleSaveWhiteLabel} className="bg-[#080b17] rounded-2xl p-6 w-full max-w-md space-y-4 border border-white/10 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <h3 className="font-bold text-white text-base flex items-center gap-2">
+                <Settings className="w-4 h-4 text-cyan-400" /> Dados do Estabelecimento
               </h3>
-              <button type="button" onClick={() => setIsWhiteLabelModalOpen(false)}><X className="w-5 h-5 text-slate-400" /></button>
+              <button type="button" onClick={() => setIsWhiteLabelModalOpen(false)}>
+                <X className="w-5 h-5 text-slate-400 hover:text-white" />
+              </button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300">Nome do Salão / Estabelecimento</label>
+                <label className="font-semibold text-slate-300 block mb-1">Nome Comercial</label>
                 <input
                   type="text"
                   required
                   value={brandName}
                   onChange={(e) => setBrandName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#0d1122] text-white font-bold focus:border-cyan-400 outline-none"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300">Telefone / WhatsApp Comercial</label>
+                <label className="font-semibold text-slate-300 block mb-1">Telefone / WhatsApp</label>
                 <input
                   type="text"
                   required
                   value={brandPhone}
                   onChange={(e) => setBrandPhone(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#0d1122] text-white focus:border-cyan-400 outline-none"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300">Endereço Completo</label>
+                <label className="font-semibold text-slate-300 block mb-1">Endereço Completo</label>
                 <input
                   type="text"
                   required
                   value={brandAddress}
                   onChange={(e) => setBrandAddress(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#0d1122] text-white focus:border-cyan-400 outline-none"
                 />
               </div>
             </div>
 
             <div className="flex gap-2 pt-2">
-              <button type="button" onClick={() => setIsWhiteLabelModalOpen(false)} className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-bold">Cancelar</button>
-              <button type="submit" className="flex-1 py-2.5 rounded-xl bg-[#8B5E83] text-white text-xs font-bold">Salvar Configurações</button>
+              <button type="button" onClick={() => setIsWhiteLabelModalOpen(false)} className="flex-1 py-2.5 rounded-xl bg-[#0d1122] text-slate-300 text-xs font-semibold hover:bg-slate-800">
+                Cancelar
+              </button>
+              <button type="submit" className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 text-xs font-bold shadow-md shadow-cyan-500/20">
+                Salvar Alterações
+              </button>
             </div>
           </form>
         </div>

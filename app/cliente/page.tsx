@@ -17,7 +17,8 @@ import {
   CheckCircle2, 
   Heart, 
   Download,
-  MessageSquare
+  MessageSquare,
+  X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useApp } from '@/contexts/AppContext';
@@ -73,69 +74,73 @@ export default function ClientPortalPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 space-y-8">
       <div className="max-w-6xl mx-auto space-y-8">
         
         {/* Header Profile Card */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-rose-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="konnexy-card rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#C08497] to-[#8B5E83] text-white font-extrabold text-2xl flex items-center justify-center shadow-md">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 text-slate-950 font-black text-2xl flex items-center justify-center shadow-md shadow-cyan-500/20">
               FL
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-extrabold text-slate-800 dark:text-white">
+                <h1 className="text-2xl font-black text-white">
                   Fernanda Lima
                 </h1>
-                <span className="bg-rose-100 text-[#8B5E83] text-xs px-2.5 py-0.5 rounded-full font-bold">
-                  Cliente VIP
+                <span className="bg-cyan-950/60 border border-cyan-500/40 text-cyan-300 text-xs px-2.5 py-0.5 rounded-full font-bold">
+                  💎 Cliente VIP Diamante
                 </span>
               </div>
-              <p className="text-xs text-slate-500">fernanda.lima@gmail.com • (11) 97123-4567</p>
+              <p className="text-xs text-slate-400">fernanda.lima@gmail.com • (11) 97123-4567</p>
             </div>
           </div>
 
           <button
             onClick={() => setBookingModalOpen(true)}
-            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#C08497] to-[#8B5E83] text-white font-bold text-sm shadow-md hover:scale-105 transition-all flex items-center gap-2"
+            className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold text-xs shadow-md shadow-cyan-500/25 hover:opacity-95 transition-all flex items-center gap-2"
           >
-            <Calendar className="w-4 h-4" /> Novo Agendamento
+            <Calendar className="w-4 h-4" />
+            <span>Novo Agendamento</span>
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-2 overflow-x-auto border-b border-slate-200 dark:border-slate-800 pb-2">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar border-b border-white/10">
           <button
             onClick={() => setActiveTab('upcoming')}
-            className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 ${
               activeTab === 'upcoming'
-                ? 'bg-[#C08497] text-white shadow-md'
-                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300'
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 shadow-sm'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
             }`}
           >
-            <Calendar className="w-4 h-4" /> Próximos Horários ({upcomingAppointments.length})
+            <Calendar className="w-4 h-4" />
+            <span>Próximos Agendamentos ({upcomingAppointments.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('history')}
-            className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 ${
               activeTab === 'history'
-                ? 'bg-[#C08497] text-white shadow-md'
-                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300'
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 shadow-sm'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
             }`}
           >
-            <History className="w-4 h-4" /> Histórico ({pastAppointments.length})
+            <History className="w-4 h-4" />
+            <span>Histórico de Procedimentos ({pastAppointments.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('loyalty')}
-            className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 ${
               activeTab === 'loyalty'
-                ? 'bg-[#C08497] text-white shadow-md'
-                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300'
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 shadow-sm'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
             }`}
           >
-            <Award className="w-4 h-4" /> Programa Fidelidade
+            <Award className="w-4 h-4" />
+            <span>Programa de Fidelidade</span>
           </button>
         </div>
 
@@ -143,63 +148,59 @@ export default function ClientPortalPage() {
         {activeTab === 'upcoming' && (
           <div className="space-y-4">
             {upcomingAppointments.length === 0 ? (
-              <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800 space-y-3">
-                <Calendar className="w-12 h-12 text-[#C08497] mx-auto" />
-                <h3 className="text-lg font-bold text-slate-800 dark:text-white">Nenhum agendamento futuro</h3>
-                <p className="text-xs text-slate-500">Agende seu horário online em segundos.</p>
+              <div className="konnexy-card rounded-2xl p-12 text-center space-y-3">
+                <Calendar className="w-12 h-12 text-slate-600 mx-auto" />
+                <h3 className="text-base font-bold text-white">Nenhum agendamento futuro</h3>
+                <p className="text-xs text-slate-400">Garanta seu procedimento com antecedência.</p>
                 <button
                   onClick={() => setBookingModalOpen(true)}
-                  className="px-6 py-2.5 rounded-xl bg-[#C08497] text-white text-xs font-bold"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold text-xs"
                 >
                   Agendar Agora
                 </button>
               </div>
             ) : (
-              upcomingAppointments.map((apt) => (
-                <div
-                  key={apt.id}
-                  className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-rose-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-slate-800 text-[#C08497] flex items-center justify-center font-bold">
-                      <Sparkles className="w-6 h-6" />
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-base text-slate-800 dark:text-white">
-                          {apt.service_name}
-                        </h3>
-                        <span className="text-xs bg-emerald-100 text-emerald-700 px-2.5 py-0.5 rounded-full font-semibold">
-                          {apt.status === 'confirmed' ? 'Confirmado' : 'Agendado'}
-                        </span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {upcomingAppointments.map((apt) => (
+                  <div key={apt.id} className="konnexy-card rounded-2xl p-6 space-y-4 flex flex-col justify-between">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <span className="text-[10px] uppercase font-bold text-cyan-400">Confirmado</span>
+                          <h3 className="text-lg font-bold text-white">{apt.service_name}</h3>
+                        </div>
+                        <span className="text-base font-black text-cyan-400">{formatCurrency(apt.final_price)}</span>
                       </div>
-                      <p className="text-xs text-slate-500">
-                        Profissional: <strong className="text-slate-700 dark:text-slate-300">{apt.professional_name}</strong>
-                      </p>
-                      <p className="text-xs text-slate-400 flex items-center gap-3">
-                        <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5 text-[#C08497]" /> {formatDate(apt.date)}</span>
-                        <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-[#C08497]" /> {apt.start_time}</span>
-                      </p>
+
+                      <div className="space-y-1 text-xs text-slate-300">
+                        <p className="flex items-center gap-2">
+                          <User className="w-3.5 h-3.5 text-cyan-400" />
+                          <span>Profissional: <strong className="text-white">{apt.professional_name}</strong></span>
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <Clock className="w-3.5 h-3.5 text-cyan-400" />
+                          <span>Data e Horário: <strong className="text-white">{apt.date} às {apt.start_time}</strong></span>
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-white/5 flex gap-2">
+                      <button
+                        onClick={() => downloadICS(apt)}
+                        className="flex-1 py-2 rounded-xl bg-[#080b17] hover:bg-slate-800 text-slate-300 border border-white/10 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
+                      >
+                        <Download className="w-3.5 h-3.5 text-cyan-400" /> Calendário (.ICS)
+                      </button>
+                      <button
+                        onClick={() => handleCancelAppointment(apt.id)}
+                        className="px-3 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/40 border border-rose-500/30 text-rose-300 text-xs font-semibold transition-all"
+                      >
+                        Cancelar
+                      </button>
                     </div>
                   </div>
-
-                  <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end border-t md:border-t-0 border-slate-100 pt-4 md:pt-0">
-                    <button
-                      onClick={() => downloadICS(apt)}
-                      className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-200"
-                    >
-                      <Download className="w-3.5 h-3.5" /> ICS
-                    </button>
-
-                    <button
-                      onClick={() => handleCancelAppointment(apt.id)}
-                      className="px-3.5 py-2 rounded-xl bg-rose-50 text-rose-600 text-xs font-semibold flex items-center gap-1.5 hover:bg-rose-100"
-                    >
-                      <XCircle className="w-3.5 h-3.5" /> Cancelar
-                    </button>
-                  </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
         )}
@@ -207,134 +208,130 @@ export default function ClientPortalPage() {
         {/* TAB 2: HISTORY */}
         {activeTab === 'history' && (
           <div className="space-y-4">
-            {pastAppointments.map((apt) => (
-              <div
-                key={apt.id}
-                className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-base text-slate-800 dark:text-white">
-                      {apt.service_name}
-                    </h3>
-                    <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${
-                      apt.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'
-                    }`}>
-                      {apt.status === 'completed' ? 'Concluído' : 'Cancelado'}
-                    </span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {pastAppointments.map((apt) => (
+                <div key={apt.id} className="konnexy-card rounded-2xl p-6 space-y-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className={`text-[10px] uppercase font-bold ${apt.status === 'completed' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        {apt.status === 'completed' ? 'Concluído' : 'Cancelado'}
+                      </span>
+                      <h3 className="text-base font-bold text-white">{apt.service_name}</h3>
+                      <p className="text-xs text-slate-400">{apt.date} • {apt.professional_name}</p>
+                    </div>
+                    <span className="text-sm font-bold text-slate-300">{formatCurrency(apt.final_price)}</span>
                   </div>
-                  <p className="text-xs text-slate-500">Data: {formatDate(apt.date)} com {apt.professional_name}</p>
-                  <p className="text-xs font-bold text-[#8B5E83] dark:text-rose-300">
-                    Valor Pago: {formatCurrency(apt.final_price)}
-                  </p>
+
+                  {apt.status === 'completed' && (
+                    <button
+                      onClick={() => handleOpenReview(apt)}
+                      className="w-full py-2 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/60 border border-cyan-500/30 text-cyan-300 text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+                    >
+                      <Star className="w-3.5 h-3.5 text-amber-400" /> Avaliar Atendimento
+                    </button>
+                  )}
                 </div>
-
-                {apt.status === 'completed' && (
-                  <button
-                    onClick={() => handleOpenReview(apt)}
-                    className="px-4 py-2 rounded-xl bg-[#8B5E83] text-white text-xs font-semibold flex items-center gap-1.5 hover:bg-[#744e6d]"
-                  >
-                    <Star className="w-3.5 h-3.5 fill-amber-300 text-amber-300" /> Deixar Avaliação
-                  </button>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 
-        {/* TAB 3: LOYALTY CARD */}
+        {/* TAB 3: LOYALTY */}
         {activeTab === 'loyalty' && (
-          <div className="bg-gradient-to-br from-white to-[#F8F5F2] dark:from-slate-900 dark:to-slate-800/90 rounded-3xl p-8 border border-rose-100 dark:border-slate-700 shadow-lg space-y-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-xl font-extrabold text-slate-800 dark:text-white">
-                  Cartão Fidelidade Calixto
-                </h3>
-                <p className="text-xs text-slate-500">Junte 10 carimbos e ganhe 1 Hidratação Profunda Kérastase Grátis!</p>
-              </div>
-              <span className="text-2xl font-black text-[#8B5E83] dark:text-rose-300">
-                7 / 10
-              </span>
+          <div className="konnexy-card rounded-2xl p-8 text-center max-w-xl mx-auto space-y-6">
+            <div className="w-16 h-16 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 flex items-center justify-center mx-auto shadow-lg shadow-cyan-500/20">
+              <Award className="w-8 h-8" />
             </div>
 
-            {/* Stamps Grid */}
-            <div className="grid grid-cols-5 sm:grid-cols-10 gap-3">
-              {Array.from({ length: 10 }).map((_, idx) => {
-                const isStamped = idx < 7;
-                return (
-                  <div
-                    key={idx}
-                    className={`h-16 rounded-2xl border-2 flex items-center justify-center font-bold text-sm transition-all ${
-                      isStamped
-                        ? 'border-[#C08497] bg-gradient-to-tr from-[#C08497] to-[#8B5E83] text-white shadow-md scale-105'
-                        : 'border-dashed border-slate-200 dark:border-slate-700 text-slate-300 bg-slate-50 dark:bg-slate-800'
-                    }`}
-                  >
-                    {isStamped ? <Sparkles className="w-6 h-6" /> : idx + 1}
-                  </div>
-                );
-              })}
+            <div className="space-y-1">
+              <h3 className="text-xl font-black text-white">Programa de Vantagens Konnexy</h3>
+              <p className="text-xs text-slate-400">Acumule pontos em cada visita e troque por procedimentos exclusivos.</p>
             </div>
 
-            <p className="text-xs text-slate-500 italic text-center">
-              Faltam apenas 3 atendimentos para resgatar sua premiação grátis.
-            </p>
-          </div>
-        )}
-
-        {/* Review Modal */}
-        {reviewModalOpen && (
-          <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-full max-w-md space-y-4 border border-rose-100 dark:border-slate-800 shadow-2xl">
-              <h3 className="text-lg font-bold text-slate-800 dark:text-white">
-                Avaliar Atendimento
-              </h3>
-              <p className="text-xs text-slate-500">
-                Como foi sua experiência no serviço <strong>{targetAppointment?.service_name}</strong>?
-              </p>
-
-              {/* Stars Selector */}
-              <div className="flex items-center justify-center gap-2 py-2">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    onClick={() => setRating(star)}
-                    className="p-1 text-amber-400 hover:scale-125 transition-transform"
-                  >
-                    <Star className={`w-8 h-8 ${star <= rating ? 'fill-amber-400' : 'text-slate-300'}`} />
-                  </button>
-                ))}
+            <div className="p-4 rounded-xl bg-[#080b17] border border-white/5 space-y-2">
+              <div className="flex justify-between text-xs font-semibold">
+                <span className="text-slate-400">Saldo Atual</span>
+                <span className="text-cyan-400 font-extrabold text-sm">340 Pontos</span>
               </div>
-
-              <textarea
-                rows={3}
-                placeholder="Escreva seu comentário..."
-                value={reviewComment}
-                onChange={(e) => setReviewComment(e.target.value)}
-                className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-xs bg-white dark:bg-slate-800 outline-none"
-              />
-
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setReviewModalOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-bold"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSubmitReview}
-                  className="flex-1 py-2.5 rounded-xl bg-[#C08497] text-white text-xs font-bold"
-                >
-                  Enviar Avaliação
-                </button>
+              <div className="w-full h-2.5 bg-[#0d1122] rounded-full overflow-hidden">
+                <div className="w-[68%] h-full bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full" />
               </div>
+              <p className="text-[11px] text-slate-500 text-left">Faltam 160 pontos para resgatar uma Hidratação Kérastase gratuita.</p>
             </div>
           </div>
         )}
 
       </div>
+
+      {/* REVIEW MODAL */}
+      {reviewModalOpen && (
+        <div className="fixed inset-0 z-50 bg-[#03050d]/80 backdrop-blur-md flex items-center justify-center p-4">
+          <form onSubmit={handleSubmitReview} className="bg-[#080b17] rounded-2xl p-6 w-full max-w-md space-y-4 border border-white/10 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <h3 className="font-bold text-white text-base flex items-center gap-2">
+                <Star className="w-4 h-4 text-amber-400" /> Avaliar Experiência
+              </h3>
+              <button type="button" onClick={() => setReviewModalOpen(false)}>
+                <X className="w-5 h-5 text-slate-400 hover:text-white" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <p className="text-slate-300">
+                Como foi seu procedimento de <strong>{targetAppointment?.service_name}</strong> com <strong>{targetAppointment?.professional_name}</strong>?
+              </p>
+
+              <div>
+                <label className="font-semibold text-slate-300 block mb-1">Nota (1 a 5 estrelas)</label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((st) => (
+                    <button
+                      key={st}
+                      type="button"
+                      onClick={() => setRating(st)}
+                      className={`p-2 rounded-xl text-sm font-bold flex-1 border transition-all ${
+                        rating >= st
+                          ? 'bg-amber-950/60 border-amber-500/40 text-amber-400'
+                          : 'bg-[#0d1122] border-white/5 text-slate-500'
+                      }`}
+                    >
+                      ★ {st}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="font-semibold text-slate-300 block mb-1">Seu Comentário</label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder="Conte o que achou do atendimento..."
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#0d1122] text-white focus:border-cyan-400 outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => setReviewModalOpen(false)}
+                className="flex-1 py-2.5 rounded-xl bg-[#0d1122] text-slate-300 text-xs font-semibold hover:bg-slate-800"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 text-xs font-bold shadow-md shadow-cyan-500/20"
+              >
+                Enviar Avaliação
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

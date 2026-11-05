@@ -1,69 +1,73 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronDown, HelpCircle } from 'lucide-react';
+import { ChevronDown, HelpCircle, Sparkles } from 'lucide-react';
 
 export function FAQSection() {
   const faqs = [
     {
       q: 'Preciso enviar mensagem no WhatsApp para confirmar meu agendamento?',
-      a: 'Não! Todo o processo é 100% automático pelo nosso site. Ao finalizar o agendamento, sua vaga é reservada em tempo real no sistema.',
+      a: 'Não! Todo o fluxo é 100% automático. Ao concluir a reserva pela plataforma, sua vaga fica garantida no banco de dados em tempo real, sem necessidade de aprovação manual.',
     },
     {
       q: 'Como funciona o cancelamento ou reagendamento de horário?',
-      a: 'Você pode cancelar ou reagendar com até 24 horas de antecedência acessando a sua Área do Cliente com seu e-mail ou telefone.',
+      a: 'Você pode cancelar ou escolher um novo horário diretamente na sua Área do Cliente até 24h antes do procedimento, com liberação automática da vaga para outros clientes.',
     },
     {
-      q: 'Quais formas de pagamento são aceitas no salão?',
-      a: 'Aceitamos PIX, cartões de crédito e débito, dinheiro e cupons promocionais.',
+      q: 'Quais formas de pagamento são aceitas?',
+      a: 'Aceitamos PIX instantâneo com QR Code dinâmico, cartões de crédito e débito, dinheiro no balcão e cupons de desconto exclusivos cadastrados pelo salão.',
     },
     {
-      q: 'Posso escolher um profissional específico?',
-      a: 'Sim! No momento do agendamento você pode selecionar o profissional de sua preferência ou optar por qualquer profissional disponível.',
+      q: 'Posso selecionar um profissional específico de minha preferência?',
+      a: 'Sim. Você pode escolher seu profissional favorito na etapa 2 ou selecionar "Qualquer Profissional Disponível" para visualizar os horários mais próximos.',
     },
     {
-      q: 'E se não houver horário livre na data que desejo?',
-      a: 'Você pode entrar na nossa Lista de Espera automática. Se algum cliente cancelar ou vagar um horário, você será notificada imediatamente.',
+      q: 'O que acontece se a data desejada estiver lotada?',
+      a: 'O sistema conta com Lista de Espera Inteligente. Se algum cliente cancelar ou vagar uma vaga, os inscritos são avisados automaticamente com prioridade.',
     },
   ];
 
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section className="py-24 bg-white dark:bg-slate-900 border-t border-rose-100/60 dark:border-slate-800">
+    <section className="py-24 border-t border-white/5 relative">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#C08497]/15 text-[#8B5E83] dark:text-rose-300 text-xs font-bold uppercase tracking-wider">
-            <HelpCircle className="w-4 h-4 text-[#C08497]" /> Dúvidas Frequentes
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 text-xs font-semibold uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Tire suas Dúvidas</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            Perguntas Frequentes (FAQ)
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            Perguntas Frequentes
           </h2>
+          <p className="text-slate-400 text-base max-w-xl mx-auto">
+            Entenda como funciona o agendamento inteligente e os diferenciais da tecnologia Konnexy.
+          </p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {faqs.map((faq, idx) => {
             const isOpen = openIndex === idx;
             return (
               <div
                 key={idx}
-                className="bg-[#F8F5F2]/50 dark:bg-slate-800/60 rounded-2xl border border-rose-100 dark:border-slate-700 overflow-hidden transition-all"
+                className="konnexy-card rounded-2xl overflow-hidden transition-all duration-200"
               >
                 <button
                   onClick={() => setOpenIndex(isOpen ? null : idx)}
-                  className="w-full px-6 py-5 text-left font-bold text-slate-800 dark:text-white text-base flex justify-between items-center gap-4 hover:text-[#C08497] transition-colors"
+                  className="w-full px-6 py-5 text-left font-bold text-white text-base flex justify-between items-center gap-4 hover:text-cyan-300 transition-colors"
                 >
                   <span>{faq.q}</span>
                   <ChevronDown
-                    className={`w-5 h-5 text-[#C08497] transition-transform duration-300 ${
+                    className={`w-5 h-5 text-cyan-400 shrink-0 transition-transform duration-300 ${
                       isOpen ? 'rotate-180' : ''
                     }`}
                   />
                 </button>
 
                 {isOpen && (
-                  <div className="px-6 pb-6 text-sm text-slate-600 dark:text-slate-300 leading-relaxed border-t border-rose-100/50 dark:border-slate-700/50 pt-4">
+                  <div className="px-6 pb-6 text-sm text-slate-300 leading-relaxed border-t border-white/5 pt-4">
                     {faq.a}
                   </div>
                 )}
