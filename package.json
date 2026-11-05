@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
+    "seed": "tsx prisma/seed.ts",
     "prisma:generate": "prisma generate"
   },
   "dependencies": {
@@ -49,6 +50,7 @@
     "postcss": "^8.4.49",
     "prisma": "6.4.0",
     "tailwindcss": "^4.0.0-beta.8",
+    "tsx": "^4.23.15",
     "typescript": "^5.7.2",
     "vitest": "^4.1.12"
   }
