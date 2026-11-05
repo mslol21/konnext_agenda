@@ -212,3 +212,10 @@ body {
   transform: translateY(-1px) scale(1.02);
   box-shadow: 0 6px 16px rgba(34, 211, 238, 0.25) !important;
 }
+
+@media (max-width: 640px) {
+  .fc .fc-header-toolbar { flex-wrap: wrap; gap: 0.75rem; }
+  .fc .fc-toolbar-chunk { max-width: 100%; }
+  .fc .fc-button { padding: 0.4rem 0.55rem !important; }
+  .fc .fc-toolbar-title { font-size: 1rem !important; }
+}

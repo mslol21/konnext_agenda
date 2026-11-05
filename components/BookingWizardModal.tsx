@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '@/contexts/AppContext';
+import { getDemoSlots } from '@/lib/demo-availability';
 import { DataStore } from '@/lib/store';
 import { Service, Professional, Coupon, Appointment } from '@/types';
-import { formatCurrency, downloadICS, cn } from '@/lib/utils';
+import { formatCurrency, downloadICS, cn, getLocalDate } from '@/lib/utils';
 import { 
   X, 
   Check, 
@@ -29,6 +30,13 @@ import toast from 'react-hot-toast';
 export function BookingWizardModal() {
   const { bookingModalOpen, setBookingModalOpen, selectedServiceId, setSelectedServiceId, triggerRefresh } = useApp();
 
+  const [isDemo, setIsDemo] = useState(false);
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const [tenantSlug, setTenantSlug] = useState('');
+  const [bookingPhone, setBookingPhone] = useState('');
+  const [catalogError, setCatalogError] = useState('');
+  const [slotDetails, setSlotDetails] = useState<Array<{ time: string; startAt: string; endAt: string }>>([]);
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
   const [services, setServices] = useState<Service[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -69,34 +77,48 @@ export function BookingWizardModal() {
 
   useEffect(() => {
     if (bookingModalOpen) {
-      const allServices = DataStore.getServices();
-      const allCats = DataStore.getCategories();
-      const allPros = DataStore.getProfessionals();
-
-      setServices(allServices);
-      setCategories(allCats);
-      setProfessionals(allPros);
-
-      // Preselect service if specified
-      if (selectedServiceId) {
-        const found = allServices.find(s => s.id === selectedServiceId);
-        if (found) {
-          setSelectedService(found);
-          setStep(2);
-        }
-      }
+      const controller = new AbortController();
+      setCatalogError('');
+      setCatalogLoading(true);
+      setServices([]);
+      setProfessionals([]);
+      fetch('/api/catalog', { signal: controller.signal })
+        .then(async response => {
+          const result = await response.json();
+          if (!response.ok || !result.success) throw new Error(result.error || 'Não foi possível carregar a agenda.');
+          return result.data;
+        })
+        .then(data => {
+          if (controller.signal.aborted) return;
+          const demo = data.mode === 'demo';
+          setIsDemo(demo);
+          if (demo) data = { ...data, services: DataStore.getServices(), categories: DataStore.getCategories(), professionals: DataStore.getProfessionals(), phone: DataStore.getSalon().phone, tenantSlug: '' };
+          setServices(data.services);
+          setCategories(data.categories);
+          setProfessionals(data.professionals);
+          setTenantSlug(data.tenantSlug);
+          setBookingPhone(data.phone);
+          if (selectedServiceId) {
+            const local = DataStore.getServices().find(service => service.id === selectedServiceId);
+            const found = data.services.find((service: Service) => service.id === selectedServiceId || service.slug === local?.slug);
+            if (found) { setSelectedService(found); setStep(2); }
+          }
+        })
+        .catch(error => { if (!controller.signal.aborted) setCatalogError(error.message); })
+        .finally(() => { if (!controller.signal.aborted) setCatalogLoading(false); });
 
       // Default date to today or tomorrow
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDate();
       setSelectedDate(today);
 
       // Gerar sessionToken único para esta tentativa de reserva
-      const token = 'sess_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+      const token = crypto.randomUUID();
       setSessionToken(token);
+      return () => controller.abort();
     } else {
       // Liberar hold se usuário fechar o modal
-      if (sessionToken) {
-        fetch(`/api/booking/hold?sessionToken=${sessionToken}`, { method: 'DELETE' }).catch(() => {});
+      if (sessionToken && !isDemo) {
+        fetch(`/api/booking/hold?sessionToken=${encodeURIComponent(sessionToken)}`, { method: 'DELETE', keepalive: true }).catch(() => {});
       }
 
       // Reset state when closed
@@ -141,112 +163,72 @@ export function BookingWizardModal() {
       return;
     }
 
-    let isCancelled = false;
-
-    // Tentar consultar a API de disponibilidade com anti-conflito
-    fetch(
-      `/api/availability?tenantSlug=konnexy-demo&serviceId=${selectedService.id}&professionalId=${selectedProfessional.id}&date=${selectedDate}`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        if (isCancelled) return;
-        if (data.success && data.data) {
-          const apiSlots: string[] = data.data.slots.map((s: any) => s.time);
-          setAvailableTimeSlots(apiSlots);
-          if (data.data.nextAvailableSuggestions) {
-            setNextSuggestions(data.data.nextAvailableSuggestions);
-          } else {
-            setNextSuggestions([]);
-          }
-          return;
-        }
-        // Fallback local se a API retornar erro de conexão
-        computeLocalSlots();
-      })
-      .catch(() => {
-        if (!isCancelled) {
-          computeLocalSlots();
-        }
-      });
-
-    function computeLocalSlots() {
-      const dayOfWeek = new Date(selectedDate + 'T12:00:00').getDay();
-      if (dayOfWeek === 0) {
-        setAvailableTimeSlots([]);
-        return;
-      }
-
-      const appointments = DataStore.getAppointments().filter(
-        (a) => a.professional_id === selectedProfessional?.id && a.date === selectedDate && a.status !== 'cancelled'
-      );
-
-      const proStart = selectedProfessional?.working_hours?.start || '09:00';
-      const proEnd = selectedProfessional?.working_hours?.end || '19:00';
-      const [startH, startM] = proStart.split(':').map(Number);
-      const [endH, endM] = proEnd.split(':').map(Number);
-
-      const startMinutes = startH * 60 + startM;
-      const endMinutes = endH * 60 + endM;
-      const stepMin = 30;
-      const duration = selectedService?.duration_minutes || 60;
-
-      const slots: string[] = [];
-      for (let time = startMinutes; time + duration <= endMinutes; time += stepMin) {
-        if (selectedProfessional?.break_hours) {
-          const [bStartH, bStartM] = selectedProfessional.break_hours.start.split(':').map(Number);
-          const [bEndH, bEndM] = selectedProfessional.break_hours.end.split(':').map(Number);
-          const bStart = bStartH * 60 + bStartM;
-          const bEnd = bEndH * 60 + bEndM;
-          if (time < bEnd && time + duration > bStart) {
-            continue;
-          }
-        }
-
-        const slotStartH = Math.floor(time / 60).toString().padStart(2, '0');
-        const slotStartM = (time % 60).toString().padStart(2, '0');
-        const slotTimeStr = `${slotStartH}:${slotStartM}`;
-        const slotEndTotal = time + duration;
-        const slotEndH = Math.floor(slotEndTotal / 60).toString().padStart(2, '0');
-        const slotEndM = (slotEndTotal % 60).toString().padStart(2, '0');
-        const slotEndTimeStr = `${slotEndH}:${slotEndM}`;
-
-        const hasConflict = appointments.some((apt) => {
-          return slotTimeStr < apt.end_time && slotEndTimeStr > apt.start_time;
-        });
-
-        if (!hasConflict) {
-          slots.push(slotTimeStr);
-        }
-      }
-
-      setAvailableTimeSlots(slots);
+    if (isDemo) {
+      const slots = getDemoSlots(selectedService, selectedProfessional, selectedDate, (start, end) =>
+        DataStore.checkSlotAvailable(selectedProfessional.id, selectedDate, start, end));
+      setSlotDetails(slots);
+      setAvailableTimeSlots(slots.map(slot => slot.time));
+      setSelectedTime('');
+      return;
     }
+    const controller = new AbortController();
+    setSelectedTime('');
+    setAvailableTimeSlots([]);
+    setSlotDetails([]);
+    setNextSuggestions([]);
+    fetch(`/api/availability?${new URLSearchParams({ tenantSlug, serviceId: selectedService.id, professionalId: selectedProfessional.id, date: selectedDate })}`, { signal: controller.signal })
+      .then(async response => {
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.error || 'Não foi possível consultar horários.');
+        return data.data;
+      })
+      .then(data => {
+        if (controller.signal.aborted) return;
+        setSlotDetails(data.slots);
+        setAvailableTimeSlots(data.slots.map((slot: { time: string }) => slot.time));
+        setNextSuggestions(data.nextAvailableSuggestions || []);
+      })
+      .catch(error => { if (!controller.signal.aborted) toast.error(error.message); });
+    return () => controller.abort();
+  }, [selectedService, selectedDate, selectedProfessional, tenantSlug, isDemo]);
 
-    return () => {
-      isCancelled = true;
+  useEffect(() => {
+    if (!bookingModalOpen) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    dialogRef.current?.focus();
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !isSubmitting && !isHolding) setBookingModalOpen(false);
+      if (event.key !== 'Tab') return;
+      const elements = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input, textarea, select, [tabindex="0"]') || []);
+      const first = elements[0], last = elements[elements.length - 1];
+      if (!first) { event.preventDefault(); return; }
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === dialogRef.current)) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && (document.activeElement === last || document.activeElement === dialogRef.current)) { event.preventDefault(); first.focus(); }
     };
-  }, [selectedService, selectedDate, selectedProfessional]);
+    document.addEventListener('keydown', handleKey);
+    return () => { document.body.style.overflow = overflow; document.removeEventListener('keydown', handleKey); previous?.focus(); };
+  }, [bookingModalOpen, isSubmitting, isHolding, setBookingModalOpen]);
 
   // Avançar para tela de dados criando o HOLD de 5 minutos
   const handleProceedToStep5WithHold = async () => {
     if (!selectedService || !selectedProfessional || !selectedDate || !selectedTime) return;
 
+    if (isDemo) { setStep(5); return; }
     setIsHolding(true);
 
-    const [h, m] = selectedTime.split(':').map(Number);
-    const duration = selectedService.duration_minutes;
-    const startIso = new Date(`${selectedDate}T${selectedTime}:00-03:00`).toISOString();
-    const endTotalM = h * 60 + m + duration;
-    const endH = Math.floor(endTotalM / 60).toString().padStart(2, '0');
-    const endM = (endTotalM % 60).toString().padStart(2, '0');
-    const endIso = new Date(`${selectedDate}T${endH}:${endM}:00-03:00`).toISOString();
+    const slot = slotDetails.find(slot => slot.time === selectedTime);
+    if (!slot) { setIsHolding(false); return; }
+    const startIso = slot.startAt;
+    const endIso = slot.endAt;
 
     try {
       const res = await fetch('/api/booking/hold', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tenantSlug: 'konnexy-demo',
+          tenantSlug,
           sessionToken,
           serviceId: selectedService.id,
           professionalId: selectedProfessional.id,
@@ -267,14 +249,13 @@ export function BookingWizardModal() {
         }
       }
 
-      // Hold confirmado por 5 minutos
-      setHoldExpiresAt(new Date(Date.now() + 5 * 60 * 1000));
+      if (!res.ok || !data.success) throw new Error(data.error || 'Não foi possível reservar o horário.');
+      // Use the expiration returned by the server.
+      setHoldExpiresAt(new Date(data.data.expiresAt));
       setHoldTimeLeft(300);
       setStep(5);
-    } catch {
-      // Se a rota falhar por estar offline, avança graciosamente
-      setHoldExpiresAt(new Date(Date.now() + 5 * 60 * 1000));
-      setStep(5);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Sem conexão. Tente novamente.');
     } finally {
       setIsHolding(false);
     }
@@ -289,19 +270,17 @@ export function BookingWizardModal() {
   });
 
   // Filter Professionals
-  const filteredProfessionals = professionals;
+  const filteredProfessionals = professionals.filter(pro => pro.status === 'active' && !!selectedService && pro.services.includes(selectedService.id));
 
   // Apply Coupon
   const handleApplyCoupon = () => {
-    if (!couponCode || !selectedService) return;
-    const res = DataStore.validateCoupon(couponCode, selectedService.price);
-    if (res.valid && res.coupon) {
-      setAppliedCoupon(res.coupon);
-      setDiscountAmount(res.discount);
-      toast.success(`Cupom ${res.coupon.code} aplicado com sucesso! -${formatCurrency(res.discount)}`);
-    } else {
-      toast.error(res.message || 'Cupom inválido');
-    }
+    if (!isDemo) { toast.error('Cupons ainda não estão disponíveis para reservas online.'); return; }
+    if (!selectedService) return;
+    const result = DataStore.validateCoupon(couponCode, selectedService.price);
+    if (!result.valid || !result.coupon) { toast.error(result.message || 'Cupom inválido.'); return; }
+    setAppliedCoupon(result.coupon);
+    setDiscountAmount(result.discount);
+    toast.success('Cupom aplicado à simulação.');
   };
 
   // Submit Final Booking
@@ -311,11 +290,14 @@ export function BookingWizardModal() {
       return;
     }
 
+    if (isSubmitting) return;
+    if (!isDemo && (!holdExpiresAt || holdExpiresAt <= new Date())) { toast.error('Revalide o horário antes de confirmar.'); setStep(4); return; }
+    if (clientName.trim().length < 2 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail.trim()) || clientPhone.replace(/\D/g, '').length < 10) { toast.error('Informe nome, e-mail e telefone válidos.'); return; }
     setIsSubmitting(true);
 
     // Calculate end time
     const [h, m] = selectedTime.split(':').map(Number);
-    const totalM = h * 60 + m + selectedService.duration_minutes;
+    const totalM = h * 60 + m + selectedService.duration_minutes + (selectedService.buffer_minutes || 0);
     const endH = Math.floor(totalM / 60).toString().padStart(2, '0');
     const endM = (totalM % 60).toString().padStart(2, '0');
     const endTimeStr = `${endH}:${endM}`;
@@ -323,15 +305,32 @@ export function BookingWizardModal() {
     const finalPrice = Math.max(0, selectedService.price - discountAmount);
 
     const startIso = new Date(`${selectedDate}T${selectedTime}:00-03:00`).toISOString();
-    const endIso = new Date(`${selectedDate}T${endTimeStr}:00-03:00`).toISOString();
+    const endIso = slotDetails.find(slot => slot.time === selectedTime)?.endAt || new Date(`${selectedDate}T${endTimeStr}:00-03:00`).toISOString();
 
     try {
+      if (isDemo) {
+        const result = DataStore.createAppointment({
+          salon_id: selectedService.salon_id, client_id: `demo-${crypto.randomUUID()}`,
+          client_name: clientName.trim(), client_email: clientEmail.trim().toLowerCase(), client_phone: clientPhone,
+          professional_id: selectedProfessional.id, professional_name: selectedProfessional.name, professional_photo: selectedProfessional.photo_url,
+          service_id: selectedService.id, service_name: selectedService.name, service_price: selectedService.price,
+          service_duration: selectedService.duration_minutes, service_color: selectedService.color,
+          date: selectedDate, start_time: selectedTime, end_time: endTimeStr, price: selectedService.price,
+          discount: discountAmount, final_price: finalPrice, status: 'confirmed', notes, payment_status: 'pending',
+        });
+        if (!result.success || !result.appointment) throw new Error(result.message || 'Não foi possível salvar a simulação.');
+        setCreatedAppointment(result.appointment);
+        setStep(6);
+        triggerRefresh();
+        toast.success('Simulação salva neste navegador.');
+        return;
+      }
       // 1. Chamar API de confirmação no banco Postgres
       const response = await fetch('/api/booking/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tenantSlug: 'konnexy-demo',
+          tenantSlug,
           sessionToken,
           customer: {
             name: clientName,
@@ -350,53 +349,31 @@ export function BookingWizardModal() {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        if (response.status === 409) {
-          toast.error(data.error || 'Conflito de horário detectado. Por favor, selecione outro horário.');
-          setStep(4);
-          setIsSubmitting(false);
-          return;
-        }
+      if (!response.ok || !data.success) {
+        if (response.status === 409 || response.status === 400) { setSelectedTime(''); setStep(4); }
+        throw new Error(data.error || 'Não foi possível confirmar o agendamento.');
       }
-    } catch {
-      // Fallback em caso de offline
-    }
-
-    // 2. Registrar no DataStore local para manter reatividade dos portais da demo
-    const result = DataStore.createAppointment({
-      salon_id: 'salon-1',
-      client_id: `cli-${Date.now()}`,
-      client_name: clientName,
-      client_phone: clientPhone,
-      client_email: clientEmail,
-      professional_id: selectedProfessional.id,
-      professional_name: selectedProfessional.name,
-      professional_photo: selectedProfessional.photo_url,
-      service_id: selectedService.id,
-      service_name: selectedService.name,
-      service_price: selectedService.price,
-      service_duration: selectedService.duration_minutes,
-      service_color: '#22d3ee',
-      date: selectedDate,
-      start_time: selectedTime,
-      end_time: endTimeStr,
-      price: selectedService.price,
-      discount: discountAmount,
-      final_price: finalPrice,
-      status: 'confirmed',
-      notes: notes,
-      payment_status: 'pending',
-    });
-
-    setIsSubmitting(false);
-
-    if (result.success && result.appointment) {
-      setCreatedAppointment(result.appointment);
+      const saved = data.data;
+      // The receipt must reflect the server record and server price, never a second local booking.
+      const receipt: Appointment = {
+        id: saved.id, salon_id: saved.tenantId, client_id: saved.customerId,
+        client_name: saved.customer.name, client_phone: saved.customer.phone, client_email: saved.customer.email,
+        professional_id: saved.professionalId, professional_name: saved.professional.name,
+        professional_photo: saved.professional.photoUrl || '', service_id: saved.serviceId,
+        service_name: saved.service.name, service_price: Number(saved.price), service_duration: saved.service.durationMinutes,
+        service_color: saved.service.color || '#22d3ee', date: selectedDate, start_time: selectedTime, end_time: endTimeStr,
+        price: Number(saved.price), discount: Number(saved.discount), final_price: Number(saved.finalPrice),
+        status: 'confirmed', notes, payment_status: 'pending', created_at: saved.createdAt,
+      };
+      setCreatedAppointment(receipt);
+      setHoldExpiresAt(null);
       setStep(6);
       triggerRefresh();
       toast.success('Agendamento confirmado com sucesso!');
-    } else {
-      toast.error(result.message || 'Erro ao realizar agendamento.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Sem conexão. Não foi possível confirmar.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -404,7 +381,7 @@ export function BookingWizardModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#03050d]/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="bg-[#080b17] rounded-2xl shadow-2xl border border-white/10 w-full max-w-3xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="booking-title" tabIndex={-1} className="bg-[#080b17] rounded-2xl shadow-2xl border border-white/10 w-full max-w-3xl overflow-hidden flex flex-col max-h-[92vh]">
         
         {/* Header Bar */}
         <div className="bg-[#0b1022] px-5 py-4 border-b border-white/10 flex items-center justify-between">
@@ -413,21 +390,21 @@ export function BookingWizardModal() {
               {step < 6 ? `${step}/5` : <Check className="w-4 h-4" />}
             </div>
             <div>
-              <h2 className="text-base font-bold text-white">
+              <h2 id="booking-title" className="text-base font-bold text-white">
                 {step === 1 && '1. Selecione o Procedimento'}
                 {step === 2 && '2. Selecione o Profissional'}
                 {step === 3 && '3. Selecione a Data'}
                 {step === 4 && '4. Selecione o Horário'}
                 {step === 5 && '5. Seus Dados & Confirmação'}
-                {step === 6 && '✨ Agendamento Confirmado!'}
+                {step === 6 && (isDemo ? 'Simulação registrada' : '✨ Agendamento Confirmado!')}
               </h2>
               <p className="text-xs text-slate-400">
                 {step === 1 && 'Escolha o serviço desejado com duração e valor transparentes'}
                 {step === 2 && 'Selecione quem cuidará do seu atendimento'}
                 {step === 3 && 'Selecione o melhor dia no calendário'}
-                {step === 4 && 'Grade de horários sincronizada em tempo real'}
+                {step === 4 && 'Horários consultados na agenda da empresa'}
                 {step === 5 && 'Preencha seus dados para receber o comprovante'}
-                {step === 6 && 'Sua vaga está garantida no sistema!'}
+                {step === 6 && (isDemo ? 'Dados locais para demonstração' : 'Sua reserva foi registrada na agenda')}
               </p>
             </div>
           </div>
@@ -435,6 +412,7 @@ export function BookingWizardModal() {
           <button
             onClick={() => setBookingModalOpen(false)}
             aria-label="Fechar"
+            disabled={isSubmitting || isHolding}
             className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -449,6 +427,9 @@ export function BookingWizardModal() {
           />
         </div>
 
+        {isDemo && <p role="status" className="px-5 py-3 text-xs text-amber-200 bg-amber-950/40">Demonstração: dados salvos apenas neste navegador. Nenhuma reserva real, cobrança ou mensagem é enviada. Use dados fictícios.</p>}
+        {catalogLoading && <p role="status" className="px-5 py-3 text-sm text-slate-300">Carregando agenda…</p>}
+        {catalogError && <p role="alert" className="px-5 py-4 text-sm text-amber-300">{catalogError}</p>}
         {/* Wizard Body Content */}
         <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
           
@@ -491,7 +472,7 @@ export function BookingWizardModal() {
                   return (
                     <div
                       key={srv.id}
-                      onClick={() => setSelectedService(srv)}
+                      onClick={() => { setSelectedService(srv); setSelectedProfessional(null); setSelectedTime(''); setAppliedCoupon(null); setDiscountAmount(0); }}
                       className={cn(
                         "p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between group",
                         isSelected
@@ -583,7 +564,7 @@ export function BookingWizardModal() {
               </label>
               <input
                 type="date"
-                min={new Date().toISOString().split('T')[0]}
+                min={getLocalDate()}
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#0d1122] text-white font-semibold focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 outline-none shadow-sm"
@@ -699,7 +680,7 @@ export function BookingWizardModal() {
           {step === 5 && (
             <div className="space-y-5">
               {/* Hold Timer Banner */}
-              <div className="p-3.5 rounded-xl bg-cyan-950/40 border border-cyan-500/30 flex items-center justify-between text-xs shadow-sm">
+              {!isDemo && <div className="p-3.5 rounded-xl bg-cyan-950/40 border border-cyan-500/30 flex items-center justify-between text-xs shadow-sm">
                 <span className="text-cyan-300 font-semibold flex items-center gap-1.5">
                   <Clock className="w-4 h-4 text-cyan-400 animate-pulse" />
                   Horário reservado com exclusividade para você:
@@ -707,13 +688,15 @@ export function BookingWizardModal() {
                 <span className="font-mono font-extrabold text-cyan-400 bg-cyan-950/80 px-2.5 py-1 rounded-md border border-cyan-500/20">
                   {Math.floor(holdTimeLeft / 60).toString().padStart(2, '0')}:{(holdTimeLeft % 60).toString().padStart(2, '0')}
                 </span>
-              </div>
+              </div>}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
                     <User className="w-3.5 h-3.5 text-cyan-400" /> Seu Nome Completo *
                   </label>
                   <input
+                    aria-label="Seu nome completo"
+                    autoComplete="name"
                     type="text"
                     required
                     placeholder="Ex: Amanda Silva"
@@ -728,6 +711,8 @@ export function BookingWizardModal() {
                     <Phone className="w-3.5 h-3.5 text-cyan-400" /> Celular / WhatsApp *
                   </label>
                   <input
+                    aria-label="Seu telefone"
+                    autoComplete="tel"
                     type="tel"
                     required
                     placeholder="(11) 99999-9999"
@@ -742,6 +727,8 @@ export function BookingWizardModal() {
                     <Mail className="w-3.5 h-3.5 text-cyan-400" /> E-mail para confirmação *
                   </label>
                   <input
+                    aria-label="Seu e-mail"
+                    autoComplete="email"
                     type="email"
                     required
                     placeholder="amanda@exemplo.com.br"
@@ -766,7 +753,7 @@ export function BookingWizardModal() {
               </div>
 
               {/* Coupon Section */}
-              <div className="p-4 rounded-xl bg-[#0d1122] space-y-2.5 border border-white/5">
+              {isDemo && <div className="p-4 rounded-xl bg-[#0d1122] space-y-2.5 border border-white/5">
                 <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
                   <Tag className="w-3.5 h-3.5 text-cyan-400" /> Possui Cupom de Desconto? (Ex: PRIMEIRA10 ou VIP50)
                 </label>
@@ -776,7 +763,7 @@ export function BookingWizardModal() {
                     placeholder="Código do Cupom"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                    className="flex-1 px-4 py-2 rounded-xl border border-white/10 bg-[#080b17] text-white placeholder:text-slate-500 text-sm uppercase font-mono font-bold focus:border-cyan-400 outline-none"
+                    className="min-w-0 flex-1 px-4 py-2 rounded-xl border border-white/10 bg-[#080b17] text-white placeholder:text-slate-500 text-sm uppercase font-mono font-bold focus:border-cyan-400 outline-none"
                   />
                   <button
                     type="button"
@@ -788,6 +775,7 @@ export function BookingWizardModal() {
                 </div>
               </div>
 
+              }
               {/* Price Calculation Card */}
               <div className="p-4 rounded-xl bg-cyan-950/20 border border-cyan-500/30 space-y-2 text-sm">
                 <div className="flex justify-between text-slate-300 font-medium">
@@ -817,10 +805,10 @@ export function BookingWizardModal() {
 
               <div>
                 <h3 className="text-2xl font-extrabold text-white">
-                  Agendamento Confirmado!
+                  {isDemo ? 'Simulação registrada!' : 'Agendamento confirmado!'}
                 </h3>
                 <p className="text-xs text-slate-400 max-w-md mx-auto mt-1">
-                  Sua vaga foi reservada com sucesso no sistema. Enviamos um e-mail com os detalhes para <strong>{createdAppointment.client_email}</strong>.
+                  {isDemo ? 'Esta é uma simulação local. Nenhuma vaga real foi reservada.' : 'Sua reserva foi registrada. Salve o comprovante ou adicione o horário à sua agenda pessoal.'}
                 </p>
               </div>
 
@@ -843,12 +831,12 @@ export function BookingWizardModal() {
               </div>
 
               {/* Primary Action: Launch WhatsApp Cloud API */}
-              <div className="p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-center space-y-2">
+              {!isDemo && <div className="p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-center space-y-2">
                 <p className="text-xs font-semibold text-emerald-300">
                   Deseja receber confirmação ou tirar dúvidas no WhatsApp?
                 </p>
                 <a
-                  href={`https://wa.me/5511987654321?text=${encodeURIComponent(`✨ *Olá! Gostaria de confirmar meu agendamento no Konnexy Agenda!*\n\n📋 *Código*: #${createdAppointment.id}\n👤 *Cliente*: ${createdAppointment.client_name}\n✂️ *Serviço*: ${createdAppointment.service_name}\n🌟 *Profissional*: ${createdAppointment.professional_name}\n🗓️ *Data*: ${createdAppointment.date} às ${createdAppointment.start_time}\n💰 *Valor*: R$ ${createdAppointment.final_price.toFixed(2)}\n\nPodem me confirmar os detalhes? Obrigado!`)}`}
+                  href={`https://wa.me/${bookingPhone.replace(/\D/g, '').replace(/^(\d{10,11})$/, '55$1')}?text=${encodeURIComponent(`✨ *Olá! Gostaria de confirmar meu agendamento no Konnexy Agenda!*\n\n📋 *Código*: #${createdAppointment.id}\n👤 *Cliente*: ${createdAppointment.client_name}\n✂️ *Serviço*: ${createdAppointment.service_name}\n🌟 *Profissional*: ${createdAppointment.professional_name}\n🗓️ *Data*: ${createdAppointment.date} às ${createdAppointment.start_time}\n💰 *Valor*: R$ ${createdAppointment.final_price.toFixed(2)}\n\nPodem me confirmar os detalhes? Obrigado!`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-slate-950 font-extrabold text-xs shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all min-h-[44px]"
@@ -858,6 +846,7 @@ export function BookingWizardModal() {
                 </a>
               </div>
 
+              }
               {/* Sync Calendar Actions */}
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-slate-400">

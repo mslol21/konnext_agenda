@@ -52,7 +52,11 @@ export function getTenantDb(tenantId: string) {
         if (!existing) {
           throw new Error('Acesso negado: registro não pertence a este tenant.');
         }
-        return prisma.service.update(args);
+        return prisma.service.update({
+          ...args,
+          where: { ...args.where, tenantId },
+          data: { ...args.data, tenantId },
+        });
       },
       delete: async (args: any) => {
         const existing = await prisma.service.findFirst({
@@ -61,7 +65,7 @@ export function getTenantDb(tenantId: string) {
         if (!existing) {
           throw new Error('Acesso negado: registro não pertence a este tenant.');
         }
-        return prisma.service.delete(args);
+        return prisma.service.delete({ ...args, where: { ...args.where, tenantId } });
       },
     },
 

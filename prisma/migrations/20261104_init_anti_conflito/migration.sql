@@ -11,7 +11,7 @@ BEGIN
         ALTER TABLE "appointments" ADD CONSTRAINT "no_overlapping_appointments"
         EXCLUDE USING gist (
             professional_id WITH =,
-            tstzrange(start_at, end_at, '[)') WITH &&
+            tsrange(start_at, end_at, '[)') WITH &&
         ) WHERE (status IN ('held', 'confirmed', 'in_progress'));
     END IF;
 END $$;

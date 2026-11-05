@@ -18,10 +18,10 @@ export function GallerySection() {
             <span>Portfólio & Resultados</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
-            Galeria de Procedimentos Realizados
+            Galeria de Demonstração
           </h2>
           <p className="text-slate-400 text-base max-w-xl mx-auto">
-            Resultados reais de mechas, cortes, tratamentos capilares e estética executados por nossos especialistas.
+            Imagens ilustrativas para demonstrar a apresentação de procedimentos e resultados.
           </p>
         </div>
 
@@ -30,12 +30,17 @@ export function GallerySection() {
           {initialGallery.map((item) => (
             <div
               key={item.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`Ampliar ${item.title}`}
+              onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setSelectedImage(item.image_url); } }}
               onClick={() => setSelectedImage(item.image_url)}
               className="relative h-72 rounded-2xl overflow-hidden cursor-pointer group border border-white/10 shadow-lg hover:border-cyan-500/40 transition-all duration-300"
             >
               <img
                 src={item.image_url}
                 alt={item.title}
+                loading="lazy"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#03050d] via-[#03050d]/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5 text-white space-y-1">

@@ -2,7 +2,13 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { Role } from '@prisma/client';
 
-const JWT_SECRET = process.env.AUTH_SECRET || 'konnexy_agenda_super_secret_jwt_key_2026';
+function getJwtSecret(): string {
+  const secret = process.env.AUTH_SECRET;
+  if (!secret || secret.length < 32) {
+    throw new Error('AUTH_SECRET deve ter pelo menos 32 caracteres.');
+  }
+  return secret;
+}
 
 export interface UserSessionPayload {
   userId: string;
@@ -37,7 +43,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
  * Assina um JWT de sessão de usuário
  */
 export function signSessionToken(payload: UserSessionPayload, expiresIn = '7d'): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn } as jwt.SignOptions);
+  return jwt.sign(payload, getJwtSecret(), { expiresIn } as jwt.SignOptions);
 }
 
 /**
@@ -45,7 +51,9 @@ export function signSessionToken(payload: UserSessionPayload, expiresIn = '7d'):
  */
 export function verifySessionToken(token: string): UserSessionPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as UserSessionPayload;
+    const decoded = jwt.verify(token, getJwtSecret(), { algorithms: ['HS256'] });
+    if (typeof decoded === 'string' || decoded.type || typeof decoded.userId !== 'string' || typeof decoded.email !== 'string') return null;
+    return decoded as UserSessionPayload;
   } catch {
     return null;
   }
@@ -60,7 +68,7 @@ export function generateClientMagicLinkToken(email: string, tenantId: string): s
     tenantId,
     type: 'magic_link_client',
   };
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: '15m' });
 }
 
 /**
@@ -68,7 +76,7 @@ export function generateClientMagicLinkToken(email: string, tenantId: string): s
  */
 export function verifyClientMagicLinkToken(token: string): MagicLinkPayload | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as MagicLinkPayload;
+    const decoded = jwt.verify(token, getJwtSecret(), { algorithms: ['HS256'] }) as MagicLinkPayload;
     if (decoded.type !== 'magic_link_client') return null;
     return decoded;
   } catch {

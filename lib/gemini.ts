@@ -34,7 +34,7 @@ SEU OBJETIVO:
 Atender os clientes que iniciam conversa pelo WhatsApp vindos do agendamento ou carrinho do site.
 Seja sempre extremamente educada, sofisticada, acolhedora, objetiva e profissional em Português do Brasil (PT-BR).
 
-INFORMAÇÕES DO SALÃO EM TEMPO REAL:
+INFORMAÇÕES DO SALÃO DE DEMONSTRAÇÃO:
 - Nome: ${salon.name}
 - Endereço: ${salon.address}
 - Horário de Funcionamento: Segunda a Sábado das 08h às 20h. Domingos e feriados: Fechado.
@@ -47,7 +47,7 @@ EQUIPE DE PROFISSIONAIS:
 ${professionalsList}
 
 REGRAS DE RESPOSTA AO CLIENTE:
-1. Quando o cliente enviar uma mensagem inicial contendo um resumo de agendamento do site (com código #apt-xxx, serviço, profissional, data, horário e valor), CONFIRME O AGENDAMENTO com entusiasmo, informe o endereço do salão e pergunte se ele precisa de alguma orientação adicional.
+1. Quando o cliente enviar uma mensagem inicial contendo um resumo de agendamento do site (com código #apt-xxx, serviço, profissional, data, horário e valor), informe que a confirmação deve ser verificada na agenda pela equipe; nunca confirme disponibilidade ou pagamento apenas com base em mensagem do cliente, informe o endereço do salão e pergunte se ele precisa de alguma orientação adicional.
 2. Se o cliente perguntar sobre preços ou serviços, informe os valores exatos listados acima.
 3. Se o cliente perguntar sobre formas de pagamento, informe que aceitamos PIX, cartões de crédito/débito e dinheiro.
 4. Mantenha a resposta concisa e agradável (ideal para WhatsApp). Use emojis com moderação (✨, ✂️, 💅, 🗓️, 📍).
@@ -80,7 +80,7 @@ export async function generateGeminiAIResponse(userMessage: string): Promise<str
   const salon = DataStore.getSalon();
 
   if (msgLower.includes('agendamento') || msgLower.includes('#apt') || msgLower.includes('corte') || msgLower.includes('mechas') || msgLower.includes('limpeza')) {
-    return `✨ Olá! Que maravilhoso ter você no *${salon.name}*!\n\nRecebi os detalhes do seu agendamento vindo do nosso site com sucesso! 🗓️\n\nSua reserva já está pré-confirmada em nosso sistema. Nosso endereço é:\n📍 *${salon.address}*\n\nPrecisa de alguma dúvida sobre como chegar ou sobre seu procedimento? Será um imenso prazer te atender! 🥰`;
+    return `✨ Olá! Que maravilhoso ter você no *${salon.name}*!\n\nPosso orientar sobre o fluxo de agendamento de demonstração. 🗓️\n\nNão consigo consultar ou confirmar reservas. Verifique o comprovante no site ou fale com a equipe do estabelecimento. Nosso endereço é:\n📍 *${salon.address}*\n\nPrecisa de alguma dúvida sobre como chegar ou sobre seu procedimento? Será um imenso prazer te atender! 🥰`;
   }
 
   if (msgLower.includes('preço') || msgLower.includes('quanto custa') || msgLower.includes('valor')) {
@@ -91,5 +91,5 @@ export async function generateGeminiAIResponse(userMessage: string): Promise<str
     return `📍 Estamos localizados em um espaço privilegiado no Jardins:\n*${salon.address}*\n\nContamos com manobrista e estacionamento no local. Te esperamos! ✨`;
   }
 
-  return `✨ Olá! Sou a Atendente Virtual de Inteligência Artificial do *${salon.name}*.\n\nRecebi sua mensagem! Como posso te ajudar hoje? Você pode tirar dúvidas sobre serviços, valores ou confirmar seu agendamento realizado no site! 🥰`;
+  return `✨ Olá! Sou a assistente virtual de demonstração do *${salon.name}*.\n\nRecebi sua mensagem! Como posso te ajudar hoje? Você pode tirar dúvidas sobre serviços, valores ou confirmar seu agendamento realizado no site! 🥰`;
 }

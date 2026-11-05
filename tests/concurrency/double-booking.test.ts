@@ -1,6 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createHold, confirmBooking, BookingConflictError } from '../../lib/booking-engine';
+import { getDayAvailability } from '../../lib/availability';
 import { prisma } from '../../lib/db';
+
+vi.mock('../../lib/availability', () => ({ getDayAvailability: vi.fn() }));
 
 vi.mock('../../lib/db', () => {
   return {
@@ -20,9 +23,13 @@ vi.mock('../../lib/db', () => {
   };
 });
 
-describe('Teste de Concorrência Extremo - Zero Double-Booking', () => {
+describe('Booking engine with a simulated exclusion constraint (not a real PostgreSQL concurrency test)', () => {
+  afterEach(() => vi.useRealTimers());
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-05T12:00:00Z'));
+    vi.mocked(getDayAvailability).mockResolvedValue({ slots: [{ startAt: '2026-11-15T14:00:00.000Z', endAt: '2026-11-15T15:00:00.000Z' }] } as any);
   });
 
   it('deve permitir apenas 1 reserva com sucesso e rejeitar 49 concorrentes para o mesmo slot', async () => {
@@ -92,7 +99,7 @@ describe('Teste de Concorrência Extremo - Zero Double-Booking', () => {
           }),
         },
         customer: {
-          findFirst: vi.fn().mockResolvedValue({ id: 'temp-cust-1' }),
+          upsert: vi.fn().mockResolvedValue({ id: 'temp-cust-1' }),
         },
       };
 
@@ -120,7 +127,7 @@ describe('Teste de Concorrência Extremo - Zero Double-Booking', () => {
     const fulfilled = results.filter((r) => r.status === 'fulfilled');
     const rejected = results.filter((r) => r.status === 'rejected');
 
-    // Prova matemática: exatamente 1 obteve o horário
+    // In this simulated DB, exactly one caller obtains the slot
     expect(fulfilled.length).toBe(1);
 
     // E exatamente 49 receberam erro de conflito
@@ -164,8 +171,13 @@ describe('Teste de Concorrência Extremo - Zero Double-Booking', () => {
             id: 'hold-123',
             appointmentId: 'app-held-123',
             sessionToken,
+            expiresAt: new Date('2026-11-05T12:05:00Z'),
             appointment: {
               id: 'app-held-123',
+              tenantId,
+              serviceId,
+              startAt,
+              endAt,
               professionalId,
               status: 'held',
             },

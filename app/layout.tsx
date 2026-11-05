@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   keywords: ['agendamento online', 'Konnexy Agenda', 'ecossistema Konnexy', 'gestão de salão', 'estética', 'FullCalendar', 'WhatsApp Cloud API'],
   authors: [{ name: 'Konnexy Ecosystem' }],
   manifest: '/manifest.json',
+  icons: { icon: '/icon.svg' },
   openGraph: {
     title: 'Konnexy Agenda - Agendamento Inteligente',
     description: 'Agende seu horário online em menos de 1 minuto sem precisar de troca de mensagens manuais no WhatsApp.',
