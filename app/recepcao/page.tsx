@@ -91,11 +91,11 @@ export default function ReceptionDeskPage() {
   };
 
   return (
-    <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 space-y-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="workspace-page">
+      <div className="workspace-page-stack space-y-6">
         
         {/* Header */}
-        <div className="konnexy-card rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="workspace-page-heading flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 text-xs font-semibold mb-2">
               <Sparkles className="w-3.5 h-3.5 text-cyan-400" />

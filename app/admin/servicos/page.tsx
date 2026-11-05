@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { DataStore } from '@/lib/store';
 import { Service } from '@/types';
 import { formatCurrency } from '@/lib/utils';
-import { AdminNav } from '@/components/admin/AdminNav';
 import { Scissors, Plus, Edit, Trash2, Clock, CheckCircle2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -78,13 +77,11 @@ export default function ServicesAdminPage() {
   };
 
   return (
-    <div className="min-h-screen pb-16">
-      <AdminNav />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+    <div className="workspace-page">
+      <div className="workspace-page-stack space-y-6">
         
         {/* Header */}
-        <div className="konnexy-card rounded-2xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="workspace-page-heading flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-black text-white flex items-center gap-2">
               <Scissors className="w-6 h-6 text-cyan-400" /> Gestão de Serviços & Cardápio
