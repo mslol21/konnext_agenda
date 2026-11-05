@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { DataStore } from '@/lib/store';
 import { Coupon, InventoryItem, Salon } from '@/types';
 import { formatCurrency, exportToCSV } from '@/lib/utils';
-import { AdminNav } from '@/components/admin/AdminNav';
 import { 
   Calendar, 
   Users, 
@@ -160,35 +159,32 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen pb-16">
-      {/* Admin Module Navigation Bar */}
-      <AdminNav />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <div className="workspace-page">
+      <div className="workspace-page-stack space-y-6">
         
         {/* Top Header Bar with Unit Selector */}
-        <div className="konnexy-card rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="workspace-page-heading flex flex-col xl:flex-row justify-between items-start xl:items-center gap-5">
           <div className="space-y-1">
             <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 text-xs font-semibold uppercase">
               <Building2 className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Multi-Unidade Konnexy</span>
+              <span>Resumo do negócio</span>
             </div>
             <h1 className="text-2xl font-black text-white flex items-center gap-2">
-              {salon.name} - Visão Geral do Painel
+              Visão geral
             </h1>
             <p className="text-xs text-slate-400">
-              Gestão comercial integrada: IA Preditiva, Estoque, Vendas, Gráficos e Notificações em tempo real.
+              Acompanhe os indicadores e organize a operação do seu negócio.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex w-full xl:w-auto flex-wrap items-center gap-3">
             {/* Unit Selector */}
-            <div className="flex items-center gap-1.5 bg-[#080b17] p-1 rounded-xl border border-white/10 text-xs font-bold">
+            <div className="flex items-center gap-1 bg-[#080b17] p-1 rounded-xl border border-white/10 text-xs font-bold max-w-full overflow-x-auto">
               {units.map((u) => (
                 <button
                   key={u.id}
                   onClick={() => setSelectedUnitId(u.id)}
-                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                  className={`shrink-0 px-3 py-2 rounded-lg transition-all ${
                     selectedUnitId === u.id
                       ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold shadow-sm'
                       : 'text-slate-400 hover:text-white'
@@ -208,112 +204,8 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* ADMIN QUICK ACTIONS BAR */}
-        <div className="p-4 rounded-2xl bg-[#0b1022] border border-white/10 space-y-3">
-          <span className="text-xs font-bold text-cyan-300 uppercase tracking-wider block">
-            ⚡ Ações Rápidas de Gestão
-          </span>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-            <button
-              onClick={() => setBookingModalOpen(true)}
-              className="p-3 rounded-xl bg-[#080b17] hover:bg-slate-800 border border-white/10 text-white font-semibold flex items-center gap-2 transition-all hover:border-cyan-500/30"
-            >
-              <Zap className="w-4 h-4 text-cyan-400" />
-              <span>Encaixe de Agenda</span>
-            </button>
-
-            <button
-              onClick={() => setIsCouponModalOpen(true)}
-              className="p-3 rounded-xl bg-[#080b17] hover:bg-slate-800 border border-white/10 text-white font-semibold flex items-center gap-2 transition-all hover:border-violet-500/30"
-            >
-              <Tag className="w-4 h-4 text-violet-400" />
-              <span>Criar Cupom Express</span>
-            </button>
-
-            <button
-              onClick={handleNotifyVipPush}
-              className="p-3 rounded-xl bg-[#080b17] hover:bg-slate-800 border border-white/10 text-white font-semibold flex items-center gap-2 transition-all hover:border-blue-500/30"
-            >
-              <Bell className="w-4 h-4 text-blue-400" />
-              <span>Notificar Clientes VIP</span>
-            </button>
-
-            <button
-              onClick={() => setIsWhiteLabelModalOpen(true)}
-              className="p-3 rounded-xl bg-[#080b17] hover:bg-slate-800 border border-white/10 text-white font-semibold flex items-center gap-2 transition-all hover:border-cyan-500/30"
-            >
-              <Settings className="w-4 h-4 text-slate-400" />
-              <span>Dados do Estabelecimento</span>
-            </button>
-          </div>
-        </div>
-
-        {/* KONNEXY AI COPILOT SECTION */}
-        <div className="konnexy-card rounded-2xl p-6 sm:p-8 text-white space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-slate-950 shadow-md shadow-cyan-500/20 font-bold">
-                <Bot className="w-5 h-5 text-slate-950" />
-              </div>
-              <div>
-                <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider block">Inteligência Estratégica</span>
-                <h2 className="text-lg font-extrabold text-white">Konnexy AI Copilot</h2>
-              </div>
-            </div>
-            <span className="text-xs bg-emerald-950/60 text-emerald-400 px-3 py-1 rounded-full font-bold border border-emerald-500/30 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              IA Ativa • Dados Consolidados
-            </span>
-          </div>
-
-          <form onSubmit={handleAskAI} className="space-y-3">
-            <label className="text-xs text-slate-300 font-medium block">
-              Consulte a IA sobre taxas de retorno, horários de pico ou sugestões de receita:
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Ex: Qual o melhor horário para abrir encaixes? Ou quando clientes de mechas costumam voltar?"
-                value={aiQuestion}
-                onChange={(e) => setAiQuestion(e.target.value)}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-[#080b17] border border-white/10 text-white placeholder:text-slate-500 text-xs outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
-              />
-              <button
-                type="submit"
-                disabled={isAiAnalyzing}
-                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 text-xs font-bold shadow-md hover:opacity-90 disabled:opacity-50 flex items-center gap-1.5 shrink-0"
-              >
-                <Send className="w-3.5 h-3.5" />
-                <span>{isAiAnalyzing ? 'Processando...' : 'Consultar IA'}</span>
-              </button>
-            </div>
-          </form>
-
-          {customAiAnswer && (
-            <div className="p-4 rounded-xl bg-cyan-950/30 border border-cyan-500/30 text-xs text-cyan-100 space-y-1 animate-in fade-in">
-              <p className="leading-relaxed whitespace-pre-line">{customAiAnswer}</p>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-            {aiInsights.map((item) => (
-              <div key={item.id} className="p-4 rounded-xl bg-[#080b17] border border-white/5 space-y-2 flex flex-col justify-between hover:border-cyan-500/20 transition-all">
-                <div className="space-y-1">
-                  <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">{item.category}</span>
-                  <h3 className="font-bold text-sm text-white">{item.title}</h3>
-                  <p className="text-xs text-slate-400 leading-relaxed">{item.insight}</p>
-                </div>
-                <div className="pt-2 border-t border-white/5 flex items-center justify-between text-xs">
-                  <span className="text-emerald-400 font-bold">{item.metric}</span>
-                  <span className="text-slate-500 font-medium">Recomendação</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* 8 KPI METRIC CARDS */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="workspace-metrics grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
           <div className="konnexy-card rounded-2xl p-5 space-y-2">
             <div className="flex justify-between items-center text-xs font-bold text-slate-400">
               <span>Agendamentos Hoje</span>
@@ -404,6 +296,112 @@ export default function AdminDashboardPage() {
             <p className="text-[11px] text-slate-400">Abaixo da média de mercado (5%)</p>
           </div>
         </div>
+
+
+        {/* ADMIN QUICK ACTIONS BAR */}
+        <div className="p-4 rounded-2xl bg-[#0b1022] border border-white/10 space-y-3">
+          <span className="text-xs font-bold text-cyan-300 uppercase tracking-wider block">
+            ⚡ Ações Rápidas de Gestão
+          </span>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <button
+              onClick={() => setBookingModalOpen(true)}
+              className="p-3 rounded-xl bg-[#080b17] hover:bg-slate-800 border border-white/10 text-white font-semibold flex items-center gap-2 transition-all hover:border-cyan-500/30"
+            >
+              <Zap className="w-4 h-4 text-cyan-400" />
+              <span>Encaixe de Agenda</span>
+            </button>
+
+            <button
+              onClick={() => setIsCouponModalOpen(true)}
+              className="p-3 rounded-xl bg-[#080b17] hover:bg-slate-800 border border-white/10 text-white font-semibold flex items-center gap-2 transition-all hover:border-violet-500/30"
+            >
+              <Tag className="w-4 h-4 text-violet-400" />
+              <span>Criar Cupom Express</span>
+            </button>
+
+            <button
+              onClick={handleNotifyVipPush}
+              className="p-3 rounded-xl bg-[#080b17] hover:bg-slate-800 border border-white/10 text-white font-semibold flex items-center gap-2 transition-all hover:border-blue-500/30"
+            >
+              <Bell className="w-4 h-4 text-blue-400" />
+              <span>Notificar Clientes VIP</span>
+            </button>
+
+            <button
+              onClick={() => setIsWhiteLabelModalOpen(true)}
+              className="p-3 rounded-xl bg-[#080b17] hover:bg-slate-800 border border-white/10 text-white font-semibold flex items-center gap-2 transition-all hover:border-cyan-500/30"
+            >
+              <Settings className="w-4 h-4 text-slate-400" />
+              <span>Dados do Estabelecimento</span>
+            </button>
+          </div>
+        </div>
+
+        {/* KONNEXY AI COPILOT SECTION */}
+        <div className="konnexy-card rounded-2xl p-6 sm:p-8 text-white space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-slate-950 shadow-md shadow-cyan-500/20 font-bold">
+                <Bot className="w-5 h-5 text-slate-950" />
+              </div>
+              <div>
+                <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider block">Inteligência Estratégica</span>
+                <h2 className="text-lg font-extrabold text-white">Konnexy AI Copilot</h2>
+              </div>
+            </div>
+            <span className="text-xs bg-emerald-950/60 text-emerald-400 px-3 py-1 rounded-full font-bold border border-emerald-500/30 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              IA Ativa • Dados Consolidados
+            </span>
+          </div>
+
+          <form onSubmit={handleAskAI} className="space-y-3">
+            <label className="text-xs text-slate-300 font-medium block">
+              Consulte a IA sobre taxas de retorno, horários de pico ou sugestões de receita:
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Ex: Qual o melhor horário para abrir encaixes? Ou quando clientes de mechas costumam voltar?"
+                value={aiQuestion}
+                onChange={(e) => setAiQuestion(e.target.value)}
+                className="min-w-0 flex-1 px-4 py-2.5 rounded-xl bg-[#080b17] border border-white/10 text-white placeholder:text-slate-500 text-xs outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+              />
+              <button
+                type="submit"
+                disabled={isAiAnalyzing}
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 text-xs font-bold shadow-md hover:opacity-90 disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>{isAiAnalyzing ? 'Processando...' : 'Consultar IA'}</span>
+              </button>
+            </div>
+          </form>
+
+          {customAiAnswer && (
+            <div className="p-4 rounded-xl bg-cyan-950/30 border border-cyan-500/30 text-xs text-cyan-100 space-y-1 animate-in fade-in">
+              <p className="leading-relaxed whitespace-pre-line">{customAiAnswer}</p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+            {aiInsights.map((item) => (
+              <div key={item.id} className="p-4 rounded-xl bg-[#080b17] border border-white/5 space-y-2 flex flex-col justify-between hover:border-cyan-500/20 transition-all">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">{item.category}</span>
+                  <h3 className="font-bold text-sm text-white">{item.title}</h3>
+                  <p className="text-xs text-slate-400 leading-relaxed">{item.insight}</p>
+                </div>
+                <div className="pt-2 border-t border-white/5 flex items-center justify-between text-xs">
+                  <span className="text-emerald-400 font-bold">{item.metric}</span>
+                  <span className="text-slate-500 font-medium">Recomendação</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
 
         {/* VISUAL CHARTS SECTION */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">

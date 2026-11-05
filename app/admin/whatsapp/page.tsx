@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { generateGeminiAIResponse, getGeminiApiKey } from '@/lib/gemini';
 import { getWhatsAppConfig } from '@/lib/whatsapp';
-import { AdminNav } from '@/components/admin/AdminNav';
 import { 
   Bot, 
   Send, 
@@ -108,13 +107,11 @@ export default function WhatsAppAdminPage() {
   };
 
   return (
-    <div className="min-h-screen pb-16">
-      <AdminNav />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+    <div className="workspace-page">
+      <div className="workspace-page-stack space-y-6">
         
         {/* Header */}
-        <div className="konnexy-card rounded-2xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="workspace-page-heading flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 text-xs font-semibold mb-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />

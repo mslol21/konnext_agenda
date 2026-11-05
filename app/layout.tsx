@@ -1,11 +1,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { ApplicationFrame } from '@/components/ApplicationFrame';
 import { AppProvider } from '@/contexts/AppContext';
-import { RoleSwitcher } from '@/components/RoleSwitcher';
-import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/landing/Footer';
 import { BookingWizardModal } from '@/components/BookingWizardModal';
-import { SiteAIChatWidget } from '@/components/SiteAIChatWidget';
 import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
@@ -33,23 +30,10 @@ export default function RootLayout({
     <html lang="pt-BR" className="dark scroll-smooth">
       <body className="min-h-screen flex flex-col bg-[#03050d] text-slate-100 antialiased selection:bg-cyan-400 selection:text-slate-950 konnexy-bg-ambient">
         <AppProvider>
-          {/* Top Demo Role Switcher */}
-          <RoleSwitcher />
-          
-          {/* Main Navigation Bar */}
-          <Navbar />
-
-          {/* Main Content Page */}
-          <div className="flex-1">{children}</div>
-
-          {/* Floating AI Chat Widget */}
-          <SiteAIChatWidget />
+          <ApplicationFrame>{children}</ApplicationFrame>
 
           {/* Online Booking Wizard Modal */}
           <BookingWizardModal />
-
-          {/* Footer */}
-          <Footer />
 
           {/* Hot Toast Alerts */}
           <Toaster 

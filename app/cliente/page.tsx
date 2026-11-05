@@ -74,8 +74,8 @@ export default function ClientPortalPage() {
   );
 
   return (
-    <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 space-y-8">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <div className="workspace-page">
+      <div className="workspace-page-stack space-y-6">
         
         {/* Header Profile Card */}
         <div className="konnexy-card rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
