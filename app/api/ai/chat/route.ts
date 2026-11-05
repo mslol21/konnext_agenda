@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateGeminiAIResponse } from '@/lib/gemini';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
     const { message } = await req.json();
@@ -14,12 +16,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       reply: aiResponse,
-      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
     });
-  } catch (err: any) {
-    console.error('Erro na API de Chat com Gemini AI:', err);
+  } catch (error) {
+    console.error('Erro na rota de chat:', error);
     return NextResponse.json(
-      { error: 'Erro ao gerar resposta da Inteligência Artificial.' },
+      { error: 'Falha ao processar solicitação de IA.' },
       { status: 500 }
     );
   }
